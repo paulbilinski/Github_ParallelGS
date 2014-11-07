@@ -1,0 +1,134 @@
+pbilinsk@bigmem1:~/bwamapping$ bwa mem -B 2 -k11 -a FTEdb.fasta RIMMA0385.1.fastq | samtools view -S -b - | samtools flagstat -
+
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa mem -B 2 -k11 -a FTEdb.fasta RIMMA0385.1.fastq
+[main] Real time: 829.352 sec; CPU: 793.034 sec
+1407188 + 0 in total (QC-passed reads + QC-failed reads)
+0 + 0 duplicates
+303471 + 0 mapped (21.57%:-nan%)
+0 + 0 paired in sequencing
+0 + 0 read1
+0 + 0 read2
+0 + 0 properly paired (-nan%:-nan%)
+0 + 0 with itself and mate mapped
+0 + 0 singletons (-nan%:-nan%)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+
+
+USE -a
+
+[main] CMD: bwa mem -B 2 -k11 FTEdb.fasta RIMMA0385.1.fastq
+[main] Real time: 766.418 sec; CPU: 731.231 sec
+1329870 + 0 in total (QC-passed reads + QC-failed reads)
+0 + 0 duplicates
+226153 + 0 mapped (17.01%:-nan%)
+0 + 0 paired in sequencing
+0 + 0 read1
+0 + 0 read2
+0 + 0 properly paired (-nan%:-nan%)
+0 + 0 with itself and mate mapped
+0 + 0 singletons (-nan%:-nan%)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+
+
+#Check to see if this reference DTA_ZM00325_consensus.1.1 which has a length of 82 has hits
+in the same file
+
+pbilinsk@bigmem6:~/bwamapping$ grep "DTA_ZM00325_consensus.1.1" test.sam 
+@SQ     SN:DTA_ZM00325_consensus.1.1    LN:82
+HWI-ST611_0210:8:1105:16183:167370#0    0       DTA_ZM00325_consensus.1.1       1       37      63S37M  *       0       0       TACTGCGGGACGGGCTCGGACAGGGAATCGAGCCCGCGGGCTTAGAAGGCCCGACCTGATTTCCTAACCGTGCCTAGCGGGCCGGGCCCAAAACGGACCG  eeegggcedaef_]e`ee`gh`dgdffbdfggeda]b_NVaYa`_bbc`^`cU__aV`bYY]_b_`bacTQW[`GYR]T_]acXXT[[TW[GW[T^GT]_  NM:i:2  AS:i:31 XS:i:17
+HWI-ST611_0210:8:1106:3398:58774#0      0       DTA_ZM00325_consensus.1.1       1       37      45S55M  *       0       0       TACAGGAAATTGAGTCCGCGTGCTTAGACGGCCCGGCCCGGTTTTCTAACCGTGTCTGGCGGGCCAGGCCCAAAACGGGTCAGGCTTCACCGTGCCCGAG  eeeggfggiiiiiighiiiihhhiihifhghiiiiiiiggeabccdcddccca_acccccacccca^`aa_V[aa`XacTX^[bba[[bbc^W`[`bXOT  NM:i:8  AS:i:35 XS:i:13
+HWI-ST611_0210:8:1208:2690:118028#0     16      DTA_ZM00325_consensus.1.1       1       41      5S49M1D29M17S   *       0       0       ATTTACTAAACGTGACTAGCGGGTCGGGCCCAAAACGGGCTGGACTTCACCGAGTCTGGGCCGGGCGGCTCGTTTGGCCATCTAGCTATAAGACATAATA  BBBBB``b[WXYGG]Xa]cccccaaaca]a_cb_ccaccccddbdb\caegggggifghhhhgcaihiiiiiiiiiifdiiiiihihhiiiigggggeee  NM:i:11 AS:i:43 XS:i:18
+HWI-ST611_0210:8:2101:14140:132123#0    0       DTA_ZM00325_consensus.1.1       34      43      17M1D31M52S     *       0       0       TCCGGGCTTCACCGGGCCCGGGCCGGGCGGCCCGTTTGGCCATCTCTAACCCTACCCAAATGTATAGCTATAGTCATCGGTGCATTAACAATCAATGTAG  eeegfgggiiiiiiiiiiiiiiiihigfccccccacccccccccccddccccccccccccccdddddccdcddcdddccc__ccddcccccccccccbcc  NM:i:2  AS:i:40 XS:i:23
+
+It does indeed, several reads hit it.
+
+
+#BWA Report for TEDB:
+
+bwa mem TEdb_nobreak.fasta RIMMA0385.1.fastq | samtools view -S -b - | samtools flagstat -
+
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa mem TEdb_nobreak.fasta RIMMA0385.1.fastq
+[main] Real time: 283.404 sec; CPU: 239.700 sec
+1333328 + 0 in total (QC-passed reads + QC-failed reads)
+0 + 0 duplicates
+734051 + 0 mapped (55.05%:-nan%)
+0 + 0 paired in sequencing
+0 + 0 read1
+0 + 0 read2
+0 + 0 properly paired (-nan%:-nan%)
+0 + 0 with itself and mate mapped
+0 + 0 singletons (-nan%:-nan%)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+
+bwa mem -B 2 TEdb_nobreak.fasta RIMMA0385.1.fastq | samtools view -S -b - | samtools flagstat -
+
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa mem -B 2 TEdb_nobreak.fasta RIMMA0385.1.fastq
+[main] Real time: 289.969 sec; CPU: 248.979 sec
+1333275 + 0 in total (QC-passed reads + QC-failed reads)
+0 + 0 duplicates
+772361 + 0 mapped (57.93%:-nan%)
+0 + 0 paired in sequencing
+0 + 0 read1
+0 + 0 read2
+0 + 0 properly paired (-nan%:-nan%)
+0 + 0 with itself and mate mapped
+0 + 0 singletons (-nan%:-nan%)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+
+bwa mem -B 1 TEdb_nobreak.fasta RIMMA0385.1.fastq | samtools view -S -b - | samtools flagstat -
+
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa mem -B 1 TEdb_nobreak.fasta RIMMA0385.1.fastq
+[main] Real time: 326.321 sec; CPU: 281.977 sec
+1333349 + 0 in total (QC-passed reads + QC-failed reads)
+0 + 0 duplicates
+785521 + 0 mapped (58.91%:-nan%)
+0 + 0 paired in sequencing
+0 + 0 read1
+0 + 0 read2
+0 + 0 properly paired (-nan%:-nan%)
+0 + 0 with itself and mate mapped
+0 + 0 singletons (-nan%:-nan%)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+
+bwa mem -B 2 -k11 TEdb_nobreak.fasta RIMMA0385.1.fastq | samtools view -S -b - | samtools flagstat -
+
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa mem -B 2 -k11 TEdb_nobreak.fasta RIMMA0385.1.fastq
+[main] Real time: 1118.301 sec; CPU: 1078.154 sec
+1334859 + 0 in total (QC-passed reads + QC-failed reads)
+0 + 0 duplicates
+864615 + 0 mapped (64.77%:-nan%)
+0 + 0 paired in sequencing
+0 + 0 read1
+0 + 0 read2
+0 + 0 properly paired (-nan%:-nan%)
+0 + 0 with itself and mate mapped
+0 + 0 singletons (-nan%:-nan%)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+
+bwa mem -B 1 -k11 TEdb_nobreak.fasta RIMMA0385.1.fastq | samtools view -S -b - | samtools flagstat -
+
+1335917 + 0 in total (QC-passed reads + QC-failed reads)
+0 + 0 duplicates
+916840 + 0 mapped (68.63%:-nan%)
+0 + 0 paired in sequencing
+0 + 0 read1
+0 + 0 read2
+0 + 0 properly paired (-nan%:-nan%)
+0 + 0 with itself and mate mapped
+0 + 0 singletons (-nan%:-nan%)
+0 + 0 with mate mapped to a different chr
+0 + 0 with mate mapped to a different chr (mapQ>=5)
+[main] Version: 0.7.5a-r405
+[main] CMD: bwa mem -B 1 -k11 TEdb_nobreak.fasta RIMMA0385.1.fastq
+[main] Real time: 1118.819 sec; CPU: 1079.796 sec
