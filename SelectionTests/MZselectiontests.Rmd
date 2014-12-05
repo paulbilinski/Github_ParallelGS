@@ -43,7 +43,7 @@ Read in the phenotype data, and make sure the order of the samples are the same 
 
 ```{r}
 pheno <-read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Landraces_noSWUS_pheno.csv",header=TRUE)
-
+#to make sure order is the same
 tmp1 <- as.data.frame(colnames(geno))
 names(tmp1)[1] <- "names"
 tmp2 <- as.data.frame(pheno$FullID)
@@ -56,7 +56,7 @@ Jeremy Berg's equation for testing selection.
 
 ```{r}
 library ( mvtnorm )
-EnvVarTest <- function ( phenos , kinship.mat , test.vector ) {
+EnvVarTest <- function ( phenos , kinship.mat , test.vector, verbose=F ) {
   
   # 'phenos' is a vector containing the phenotype 
   # (i.e. number of repeats) for each individual; dimensions are N x 1
@@ -81,7 +81,7 @@ EnvVarTest <- function ( phenos , kinship.mat , test.vector ) {
   # get r^2
   ANOVA <- anova ( model ) 
   # get p value
-  print(ANOVA)
+  if(verbose){ print(ANOVA) }
   return ( c ( model$coef[2] , r.sq , ANOVA[5][[1]][1] )) # return 
 }
 ```
@@ -96,3 +96,96 @@ EnvVarTest(phenoorder$TR1.,A,phenoorder$Altitude)
 EnvVarTest(phenoorder$CentCMB,A,phenoorder$Altitude)
 EnvVarTest(phenoorder$CentC.,A,phenoorder$Altitude)
 ```
+
+Chunk for all of the teosintes.  Using the population covariance matrices from Bayenv courtesy of Tim Beissenger, and the pop averages from my phenotypes stuff.
+
+```{r}
+phenoteo <-read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Teosinte_averages.csv",header=TRUE)
+
+genoteo <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/TeosinteAll_Bayenv.csv",header=FALSE)
+
+EnvVarTest(phenoteo$X180knobMB,genoteo,phenoteo$Altitude)
+EnvVarTest(phenoteo$X180knob.,genoteo,phenoteo$Altitude)
+EnvVarTest(phenoteo$TR1MB,genoteo,phenoteo$Altitude)
+EnvVarTest(phenoteo$TR1.,genoteo,phenoteo$Altitude)
+EnvVarTest(phenoteo$CentCMB,genoteo,phenoteo$Altitude)
+EnvVarTest(phenoteo$CentC.,genoteo,phenoteo$Altitude)
+```
+
+Took just averages from parv, run the code
+
+```{r}
+phenoparv <-read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Teosinte_parv_avg.csv",header=TRUE)
+
+genoparv <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/TeosinteParv_Bayenv.csv",header=FALSE)
+
+EnvVarTest(phenoparv$X180knobMB,genoparv,phenoparv$Altitude)
+EnvVarTest(phenoparv$X180knob.,genoparv,phenoparv$Altitude)
+EnvVarTest(phenoparv$TR1MB,genoparv,phenoparv$Altitude)
+EnvVarTest(phenoparv$TR1.,genoparv,phenoparv$Altitude)
+EnvVarTest(phenoparv$CentCMB,genoparv,phenoparv$Altitude)
+EnvVarTest(phenoparv$CentC.,genoparv,phenoparv$Altitude)
+```
+
+Took just averages from mex, run the code
+
+```{r}
+phenomex <-read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Teosinte_mex_avg.csv",header=TRUE)
+
+genomex <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/TeosinteMex_Bayenv.csv",header=FALSE)
+
+EnvVarTest(phenomex$X180knobMB,genomex,phenomex$Altitude)
+EnvVarTest(phenomex$X180knob.,genomex,phenomex$Altitude)
+EnvVarTest(phenomex$TR1MB,genomex,phenomex$Altitude)
+EnvVarTest(phenomex$TR1.,genomex,phenomex$Altitude)
+EnvVarTest(phenomex$CentCMB,genomex,phenomex$Altitude)
+EnvVarTest(phenomex$CentC.,genomex,phenomex$Altitude)
+```
+
+Power sims chunk.  The rough draft but working version of it, cleaning it up with a funciton in the next go around.
+
+```{r}
+#install.packages("MASS")
+library(MASS)
+# p = mvn(my + Selection * Altitude, Va * Covariance)
+# p will be an output of our phenotypes
+mu <- rep(0, 83) #I think since we want 1K sims, we want to make the length of this 1k 
+Altitude <- phenoorder$Altitude
+B <- 10
+pizza <- mu + B * Altitude
+#covariance matrix is given in A
+VA=1 #additive genetics variance
+simpheno <- mvrnorm(n=1000,pizza, VA*A) #n=number of samples we have, for maize 83, for allteo 16 pop
+#pieces i am missing: where to stick in altitude?  I think it is at the mu
+
+pvals=sapply(1:1000,function(X) EnvVarTest(simpheno[X,],A,Altitude)[3])
+#EnvVarTest(simpheno[X,],A,Altitude,verbose=T)
+hist(pvals,breaks=100)
+plot(density(pvals))
+```
+
+Function for sims.  For the variables, here is an in text explanation:
+Samples is how many reps we want to run
+slope is our beta term, how strong selection is
+add.gen.var we assume to be 1, but is Va
+gen.covar.mat is our covariance matrix based on SNP genetypes, built earlier as matrix A
+altitudes is a vector of altitudes
+
+```{r}
+sim <- function ( samples , slope , add.gen.var , gen.covar.mat , altitudes , verbose=F) {
+  mu <- rep(0, 83)
+  Altitude <- altitudes
+  GCM <- gen.covar.mat
+  B <- slope
+  env.vector <- mu + B * Altitude
+  VA = add.gen.var
+  simpheno <- mvrnorm(n=samples,env.vector, VA*GCM)
+  pvals=sapply(1:samples,function(X) EnvVarTest(simpheno[X,],gen.covar.mat,Altitude)[3])
+  hist(pvals,breaks=100)
+}
+  
+sim(1000,1,1,A,phenoorder$Altitude)
+sim(1000,0,1,A,phenoorder$Altitude)
+```
+
+So from these histograms, we see the pvalues are all screwed up, and this is where we need help.  If beta is greater than 0, it seems to focus all pvalues to 0.077, and does not change if we go to beta 1000 compared to beta 10.  At beta zero, we would expect to see a uniform distribution of pvalues, and we don't.  Any insight as to what we are doing wrong would be most helpful.
