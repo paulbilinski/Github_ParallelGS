@@ -37,6 +37,7 @@ library("rrBLUP")
 geno <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Landrace_noSWUS_matrix.csv",header=TRUE,row.names=1)
 dt <-t(geno)
 A <- A.mat(dt)
+#go back to teosinte data, convert to frequencies of allele * 2 so that we get the # of alleles in each individual
 ```
 
 Read in the phenotype data, and make sure the order of the samples are the same as order in the genetic matrix.
@@ -52,7 +53,7 @@ tmp <- setdiff(tmp1,tmp2)
 phenoorder <- merge(tmp1,pheno, by.x="names", by.y="FullID",sort=FALSE)
 ```
 
-Jeremy Berg's equation for testing selection.
+Jeremy Berg's equation for testing selection, SKIP CHUNK.
 
 ```{r}
 library ( mvtnorm )
@@ -66,7 +67,7 @@ EnvVarTest <- function ( phenos , kinship.mat , test.vector, verbose=F ) {
   
   eigs <- eigen ( kinship.mat ) 
   # get eigendecomposition of kinship matrix
-  rt.inv <- eigs$vec %*% diag ( sqrt(eigs$val) ) 
+  rt.inv <- eigs$vec %*% diag ( 1/sqrt(eigs$val) ) %*% t ( eigs$vec ) # standardizing distances across each of the eigenvectors so the scale is the same. #change 1 and change 2 dealing with the rotation in and out of transformation 
   # calculate inverse of the square root matrix
   rotated.phenos <- t ( rt.inv ) %*% phenos 
   # rotate phenotypes from population space into principal component space
@@ -86,16 +87,113 @@ EnvVarTest <- function ( phenos , kinship.mat , test.vector, verbose=F ) {
 }
 ```
 
+Jeremy Code round 2.  has sim stuff too.
+
+```{r}
+library ( mvtnorm )
+
+
+EnvVarTest <- function ( phenos , kinship.mat , test.vector, verbose=F ) {
+  
+	# 'phenos' is a vector containing the phenotype (i.e. number of repeats) for each individual; dimensions are N x 1
+	# 'kinship.mat' is the kinship matrix; dimensions are N x N; rows and columns need to be in the same order as the phenotypes in the vector
+	# test.vector is the environmental factor of interest (in this case altitude)
+
+	#recover()
+	eigs <- eigen ( kinship.mat ) ## get eigendecomposition of kinship matrix
+	rt.inv <- eigs$vec %*% diag ( 1/sqrt(eigs$val) ) %*% t ( eigs$vec )# calculate inverse of the square root matrix
+	
+  cent.test.vector <- test.vector - mean ( test.vector )
+  cent.phenos <- phenos - mean ( phenos )
+  
+  rotated.phenos <- rt.inv %*% cent.phenos # rotate phenotypes from population space into principal component space
+	unit.test.vector <- cent.test.vector / (sqrt ( 2 * sum ( cent.test.vector^2 ) ) ) # scale to be unit length after rotation
+	#recover()
+	
+  
+  
+  
+  rotated.vector <- rt.inv %*% cent.test.vector # rotate environmental variable from population space into principal component space
+	model <- lm ( rotated.phenos ~ rotated.vector) # fit regression model
+	r.sq <- cor.test ( rotated.phenos , rotated.vector )$estimate^2 # get r^2
+	ANOVA <- anova ( model ) # get p value
+	
+	# expected fraction of variance associated with environmental variable under neutrality
+	F.env <- ( t ( unit.test.vector ) %*% kinship.mat %*% unit.test.vector ) / sum ( diag ( kinship.mat ) )
+	sums.sq <- cumsum ( ANOVA[2] ) 
+	
+	# fraction of variance associated with environmental variable for trait
+	Q.env <- sums.sq[1,]/ ( sums.sq[2,] )
+if(verbose==T){print(ANOVA)}
+	return ( c ( model$coef[2] , r.sq , ANOVA[5][[1]][1] , ANOVA[3][2,] , F.env , Q.env ) ) # return regression coefficient, r-squared, p value, estimate of Va, F statistic, Q statistic
+
+}
+```
+
+
 Now run the equations on each of the genetic phenotypes.  Altitude is our environmental variable, and we will expand on doing this with other bioclim variables.  The MB signifies megabases of the repeat, and the . is a replacement for the % symbol.
 
 ```{r}
 EnvVarTest(phenoorder$X180knobMB,A,phenoorder$Altitude)
 EnvVarTest(phenoorder$X180knob.,A,phenoorder$Altitude)
+EnvVarTest(phenoorder$TotallTeMB,A,phenoorder$Altitude)
+EnvVarTest(phenoorder$TotallTe.,A,phenoorder$Altitude)
 EnvVarTest(phenoorder$TR1MB,A,phenoorder$Altitude) 
 EnvVarTest(phenoorder$TR1.,A,phenoorder$Altitude) 
 EnvVarTest(phenoorder$CentCMB,A,phenoorder$Altitude)
 EnvVarTest(phenoorder$CentC.,A,phenoorder$Altitude)
+EnvVarTest(phenoorder$CRMallMB,A,phenoorder$Altitude)
+EnvVarTest(phenoorder$CRMall.,A,phenoorder$Altitude)
+EnvVarTest(phenoorder$X1C_GS,A,phenoorder$Altitude)
+
+
+plot(phenoorder$TotallTe. ~ phenoorder$Altitude)
+lm(phenoorder$TotallTe. ~ phenoorder$Altitude)
+
 ```
+
+Jeremy's simulation code, that I don't get.
+
+```{r}
+load
+
+my.betas <- c ( seq ( 0 , 1 , by = 0.1 ), seq ( 1.2 , 2, 0.2 ) )
+env <-rnorm ( n = 83 , 0 , sd = 1 ) # different individuals
+tmp <- list ()
+power <- numeric ( length ( my.betas ) )
+for ( i in 1 : length ( my.betas ) ) {
+
+  beta <- my.betas [ i ]
+	mu <- rep ( 0 , 152 )
+	my.mean <- mu + beta * env
+	test.data <- rmvnorm ( n = 1000 , mean = my.mean , sigma = this.cov.mat )
+	
+	tmp [[ i ]] <- matrix ( NA , nrow = 1000 , ncol = 6 )
+	for ( j in 1 : 1000 ) {
+		tmp [[ i ]] [ j , ] <- EnvVarTest ( test.data[ j , ] , this.cov.mat , env ) 
+	}
+	#hist ( tmp [[ i ]] [ , 3 ] , breaks = 50 )
+	
+	power [ i ] <- sum ( tmp [[ i ]] [ , 3  ] < 0.05 ) / 1000
+
+}
+
+Q.stat <- do.call ( cbind , lapply ( tmp , function ( x ) x [ , 6 ] ) )
+
+par ( mfrow = c ( 2, 1 ) )
+plot ( my.betas , power , xlab = expression ( beta ) , ylab = "Power"  , type = "l" , lwd = 2 )
+
+boxplot ( t ( Q.stat ) ~ my.betas , pch = 20 , xlab = expression ( beta ), ylab = expression ( Q[ENV]) )
+abline ( h = tmp [[ 1 ]] [ 1, 5 ] )
+Q.stat <- do.call ( cbind , lapply ( tmp , function ( x ) x [ , 6 ] ) )
+
+par ( mfrow = c ( 2, 1 ) )
+plot ( my.betas , power , xlab = expression ( beta ) , ylab = "Power"  , type = "l" , lwd = 2 )
+
+boxplot ( t ( Q.stat ) ~ my.betas , pch = 20 , xlab = expression ( beta ), ylab = expression ( Q[ENV]) )
+abline ( h = tmp [[ 1 ]] [ 1, 5 ] )
+```
+
 
 Chunk for all of the teosintes.  Using the population covariance matrices from Bayenv courtesy of Tim Beissenger, and the pop averages from my phenotypes stuff.
 
@@ -184,8 +282,8 @@ sim <- function ( samples , slope , add.gen.var , gen.covar.mat , altitudes , ve
   hist(pvals,breaks=100)
 }
   
-sim(1000,1,1,A,phenoorder$Altitude)
-sim(1000,0,1,A,phenoorder$Altitude)
+#sim(1000,1,1,A,phenoorder$Altitude)
+#sim(1000,0.001,1,A,phenoorder$Altitude,verbose=T)
 ```
 
 So from these histograms, we see the pvalues are all screwed up, and this is where we need help.  If beta is greater than 0, it seems to focus all pvalues to 0.077, and does not change if we go to beta 1000 compared to beta 10.  At beta zero, we would expect to see a uniform distribution of pvalues, and we don't.  Any insight as to what we are doing wrong would be most helpful.
