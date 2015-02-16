@@ -1,0 +1,262 @@
+---
+title: "Merge_FTE"
+output: html_document
+---
+
+Script to join abundance files.  First, we test it on 3 random files.  The files were altered via the PrependHeader.pl script so that they contain the appropriate header to the file, which is a column name for the FTEID and the ID of the file from which it came.  This will allow for the merging to retain an ID of abundance as the column header.
+
+```{r}
+tmp <- read.csv(file="FTE_id.fasta",header=TRUE)
+tmp1 <- read.csv(file="RIMPA0142.7.fastq.abund.head",header=TRUE)
+tmp2 <- read.csv(file="RIMPA0142.8.fastq.abund.head",header=TRUE)
+crap <- merge(tmp,tmp1, all=TRUE, by="FTE",sort=TRUE)
+crap <- merge(crap,tmp2,all=TRUE,by="FTE",sort=TRUE)
+```
+
+This merging works.  That means now we have to merge all 289.  The following will do so:
+
+```{r}
+filenames=list.files(path="~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/", full.names=TRUE)
+datalist = lapply(filenames, function(x){read.csv(file=x,header=TRUE)})
+FTE_merged <- Reduce(function(x,y) {merge(x,y,all=TRUE,by="FTE")}, datalist)
+#write.csv(FTE_merged, "289_FTE_merged.csv")
+```
+
+This will produce the merged data file for the FTE.  NA's are cells that had no reads mapping, and should be replaced with zeros.  I will be making two copies of this file.  The first will have the first column removed as its unnecessary and the rest will be left as is.  The second will be a parsing of the IDs so that the sum mapping reads for unique tags will be aggregated using R.  To change that file, I just parsed out the end of the tag, the ___.1.1 in text wrangler, and made that into another column. The last digit in the name is not important.  The following piece of code can be used to aggregate values.
+
+Scratch that aggregate thing, trying plyr.
+
+Load plyr to maybe do all of my aggregation of sums.
+
+```{r}
+#install.packages("plyr")
+library(plyr)
+```
+
+Learning plyr.  Made fake dataset, seeing if it runs
+
+```{r}
+tmp <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/toydata.csv", header=TRUE)
+agg <- ddply(tmp, .(FTE_group), numcolwise(sum))
+```
+
+Wow, it works, and its epically easy.  Run it on my big data frame, write the file to a csv and then delete the FTE_ID column as it is non-informative.
+
+```{r}
+sumem <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/289_FTE_sepID_merged.csv",header=TRUE)
+agg <- ddply(sumem, .(FTE_group), numcolwise(sum))
+#write.csv(agg, "289_FTE_aggregated.csv")
+```
+
+Now, we have to process the FTE so that we can get % values out of it.  This will have to be done separately for the merged files and the non-merged files.  
+
+```{r}
+tmp <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/289_FTE_aggregated.csv",header=TRUE,row.names="FTE_group")
+tmp2 = as.matrix(tmp)
+crap <- t(t(tmp2)/tmp2[1189,])
+perc_FTE <- as.data.frame(crap)
+#write.csv(perc_FTE,"~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/289_FTE_aggregated_perc.csv")
+landragg <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/Landrace_FTE_aggregated.csv",header=TRUE,row.names="FTE_group")
+topfte <- as.data.frame(sort(rowSums(perc_FTE),decreasing=TRUE))
+#write.csv(topfte,"~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/Top_FTE_sums.csv")
+topftel <- as.data.frame(sort(rowSums(landragg),decreasing=TRUE))
+#write.csv(topftel,"~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/Top_landrace_FTE_sums.csv")
+```
+
+Take this file, parse out the top 50 retros and DNA elements.
+
+```{r}
+listrna <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/ToptmpRetros.txt", header=FALSE)
+listlandr <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/Landrace_FTE_aggregated.csv",header=TRUE)
+rna50 <- merge(listrna, listlandr, by.x="V1",by.y="FTE_group",sort=FALSE)
+rna50$V1 <- NULL
+trna50 <- as.data.frame(t(rna50))
+gensz <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/RimmaGS.txt",header=TRUE,row.names="line")
+tmp <- merge(gensz, trna50, by.x="row.names",by.y="row.names",sort=FALSE)
+tmp2 <- tmp[order(tmp$size, decreasing=TRUE), ]
+sizes <- tmp2$size
+tmp2$size <- NULL
+accid <- tmp2$Row.names
+tmp2$Row.names <- NULL
+row.names(tmp2) <- accid
+crap <- tmp2 * sizes
+maxs <- apply(crap, 2, max)
+mins <- apply(crap, 2, min)
+scaled.rna15 <- scale(crap, center = mins, scale = maxs - mins )
+image(scaled.rna15,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of Retro Elements", col=topo.colors(50))
+gencomp <- round(100*colMeans(crap), digits = 2)
+umm <- seq(0,1, length.out = 15)
+umm2 <- 0:1
+axis(2, at=umm, labels=gencomp,las=2)
+axis(1,at=umm2,labels=c("Largest","Smallest"))
+```
+
+```{r}
+listdna <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/ToptmpDNA.txt", header=FALSE)
+listlandr <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/Landrace_FTE_aggregated.csv",header=TRUE)
+dna50 <- merge(listdna, listlandr, by.x="V1",by.y="FTE_group",sort=FALSE)
+dna50$V1 <- NULL
+tdna50 <- as.data.frame(t(dna50))
+gensz <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/RimmaGS.txt",header=TRUE,row.names="line")
+tmp <- merge(gensz, tdna50, by.x="row.names",by.y="row.names",sort=FALSE)
+tmp2 <- tmp[order(tmp$size, decreasing=TRUE), ]
+sizes <- tmp2$size
+tmp2$size <- NULL
+accid <- tmp2$Row.names
+tmp2$Row.names <- NULL
+row.names(tmp2) <- accid
+crap <- tmp2 * sizes
+maxs <- apply(crap, 2, max)
+mins <- apply(crap, 2, min)
+scaled.dna15 <- scale(crap, center = mins, scale = maxs - mins )
+image(scaled.dna15,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of DNA Elements", col=topo.colors(50))
+gencomp <- round(100*colMeans(crap), digits = 2)
+umm <- seq(0,1, length.out = 15)
+umm2 <- 0:1
+axis(2, at=umm, labels=gencomp,las=2)
+axis(1,at=umm2,labels=c("Largest","Smallest"))
+```
+
+Per Buckler commentary, we want to edit the reported megabases for how much we are actually mapping to.  This means taking the length of the total tag and dividing by the length of the aggregated tags.  So this code finds the length of everything.
+
+```{r}
+library(plyr)
+fteagg <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/MakingUTE/ftelengthforagg.csv", header=FALSE)
+fteagged <- ddply(fteagg, .(V1), numcolwise(sum))
+#write.csv(fteagged, "~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/MakingUTE/stuff.csv")
+fulltedb <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/MakingUTE/fulllengthTEdb2.csv",header=FALSE)
+togeth <- merge(fteagged, fulltedb, by="V1")
+#write.csv(togeth, "~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/MakingUTE/togeth.csv")
+```
+
+Notes: RST_ZmSINE2 has 3 versions or pieces or something, and I map to them separately.  So in parsing out the names, I had to go back to the file and give them each their separate ID tags RST_ZmSINE2_1_consensus-0 RST_ZmSINE2_2_consensus-0 RST_ZmSINE2_3_consensus-0.
+
+This chunk will take the vector of masking correction regenerate the figures of MB mapping by the correction.
+
+```{r}
+listdna <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/ToptmpDNA.txt", header=FALSE)
+listlandr <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/Landrace_FTE_aggregated.csv",header=TRUE)
+gensz <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/RimmaGS.txt",header=TRUE,row.names="line")
+maskadj <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/Maskingadjustment.csv",header=TRUE)
+mask <- maskadj$MaskingAdjustment
+ftegrp <- listlandr$FTE_group
+listlandr$FTE_group <- NULL
+listlandrmat <- as.matrix(listlandr)
+listlandadj <- listlandrmat * mask
+listlandadj2 <- as.data.frame(listlandadj)
+listlandadj2$FTE_group <- ftegrp
+dna50 <- merge(listdna, listlandadj2, by.x="V1",by.y="FTE_group",sort=FALSE)
+dna50$V1 <- NULL
+tdna50 <- as.data.frame(t(dna50))
+gensz <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/RimmaGS.txt",header=TRUE,row.names="line")
+tmp <- merge(gensz, tdna50, by.x="row.names",by.y="row.names",sort=FALSE)
+tmp2 <- tmp[order(tmp$size, decreasing=TRUE), ]
+sizes <- tmp2$size
+tmp2$size <- NULL
+accid <- tmp2$Row.names
+tmp2$Row.names <- NULL
+row.names(tmp2) <- accid
+crap <- tmp2 * sizes
+maskadj <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/Maskingadjustment.csv",header=TRUE)
+maxs <- apply(crap, 2, max)
+mins <- apply(crap, 2, min)
+scaled.dna15 <- scale(crap, center = mins, scale = maxs - mins )
+image(scaled.dna15,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of DNA Elements", col=topo.colors(50))
+gencomp <- round(100*colMeans(crap), digits = 2)
+umm <- seq(0,1, length.out = 15)
+umm2 <- 0:1
+axis(2, at=umm, labels=gencomp,las=2)
+axis(1,at=umm2,labels=c("Largest","Smallest"))
+```
+
+```{r}
+listrna <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/ToptmpRetros.txt", header=FALSE)
+listlandr <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/Landrace_FTE_aggregated.csv",header=TRUE)
+gensz <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/RimmaGS.txt",header=TRUE,row.names="line")
+maskadj <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/Maskingadjustment.csv",header=TRUE)
+mask <- maskadj$MaskingAdjustment
+ftegrp <- listlandr$FTE_group
+listlandr$FTE_group <- NULL
+listlandrmat <- as.matrix(listlandr)
+listlandadj <- listlandrmat * mask
+listlandadj2 <- as.data.frame(listlandadj)
+listlandadj2$FTE_group <- ftegrp
+rna50 <- merge(listrna, listlandadj2, by.x="V1",by.y="FTE_group",sort=FALSE)
+rna50$V1 <- NULL
+trna50 <- as.data.frame(t(rna50))
+gensz <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/RimmaGS.txt",header=TRUE,row.names="line")
+tmp <- merge(gensz, trna50, by.x="row.names",by.y="row.names",sort=FALSE)
+tmp2 <- tmp[order(tmp$size, decreasing=TRUE), ]
+sizes <- tmp2$size
+tmp2$size <- NULL
+accid <- tmp2$Row.names
+tmp2$Row.names <- NULL
+row.names(tmp2) <- accid
+crap <- tmp2 * sizes
+maxs <- apply(crap, 2, max)
+mins <- apply(crap, 2, min)
+scaled.rna15 <- scale(crap, center = mins, scale = maxs - mins )
+image(scaled.rna15,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of Retro Elements", col=topo.colors(50))
+gencomp <- round(100*colMeans(crap), digits = 2)
+umm <- seq(0,1, length.out = 15)
+umm2 <- 0:1
+axis(2, at=umm, labels=gencomp,las=2)
+axis(1,at=umm2,labels=c("Largest","Smallest"))
+```
+
+
+END DOCUMENT
+
+
+#image(scaled.rna15, ,xlab="Landrace Accession", ylab="Retro Element Family",yaxt='n',xaxt='n',main="Scaled Genomic Composition")
+gensz <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/RimmaGS.txt",header=TRUE)
+gensztmp <- gensz[order(gensz$size, decreasing=TRUE),]
+tmp <- merge(gensz, scaled.rna15, by.x="line",by.y="row.names",sort=TRUE)
+tmp2 <- tmp[order(tmp$size, decreasing=TRUE), ]
+
+tmp2$size <- NULL
+tmp2$line <- NULL
+RNAele <- as.matrix(tmp2)
+#image(tmp3, ,xlab="Landrace Accession", ylab="Retro Element Family",yaxt='n',xaxt='n',main="Scaled Genomic Composition")
+gencomp <- round(100*colMeans(trna50), digits = 2)
+#write.csv(trna50,"crap.csv")
+umm <- seq(0,1, length.out = 15)
+umm2 <- 0:1
+
+image(RNAele, ,xlab="Landrace Accession",yaxt='n',xaxt='n',main="Scaled Genomic Composition of Retro Elements")
+axis(2, at=umm, labels=gencomp,las=2)
+axis(1,at=umm2,labels=c("Largest","Smallest"))
+
+dna50$V1 <- NULL
+tdna50 <- t(dna50)
+image(tdna50)
+#write.csv(trna50, "~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/tmp.csv")
+maxs <- apply(tdna50, 2, max)
+mins <- apply(tdna50, 2, min)
+scaled.dna15 <- scale(tdna50, center = mins, scale = maxs - mins )
+image(scaled.dna15, ,xlab="Landrace Accession", ylab="DNA Element Family",yaxt='n',xaxt='n',main="Scaled Genomic Composition")
+gensz <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/RimmaGS.txt",header=TRUE)
+gensztmp <- gensz[order(gensz$size, decreasing=TRUE),]
+tmp <- merge(gensz, scaled.dna15, by.x="line",by.y="row.names",sort=TRUE)
+tmp2 <- tmp[order(tmp$size, decreasing=TRUE), ]
+tmp2$size <- NULL
+tmp2$line <- NULL
+DNAele <- as.matrix(tmp2)
+image(DNAele, ,xlab="Landrace Accession", ylab="DNA Element Family",yaxt='n',xaxt='n',main="Scaled Genomic Composition")
+gencomp <- round(100*colMeans(tdna50), digits = 3)
+?round
+gencomp
+#write.csv(trna50,"crap.csv")
+umm <- seq(0,1, length.out = 15)
+umm2 <- 0:1
+
+image(DNAele, ,xlab="Landrace Accession",yaxt='n',xaxt='n',main="Scaled Genomic Composition of DNA Elements")
+axis(2, at=umm, labels=gencomp,las=2)
+axis(1,at=umm2,labels=c("Largest","Smallest"))
+
+par(mfrow=c(2,1))
+
+crap <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/maudedata.txt", header=FALSE)
+plot(crap$V7,crap$V11)
+abline(lm(crap$V11~crap$V7))
+

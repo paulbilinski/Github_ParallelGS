@@ -1,0 +1,21 @@
+CM01,Wild, ,–,18.35,−99.841,1649,Teloloapan,Guerrero,Balsas,1.21,0.039
+CM02,Wild, ,–,18.411,−99.908,1439,Alcholoa,Guerrero,Balsas,1.186,0.042
+CM03,Wild, ,–,17.172,−99.541,343,Tierra Colorada,Guerrero,Balsas,1.008,0.016
+CM04,Wild, ,–,16.981,−99.285,581,Teconapa,Guerrero,Balsas,1.062,0.021
+CM05,Wild, ,–,17.392,−99.478,1201,Chilpancingo,Guerrero,Balsas,1.098,0.102
+CM06,Wild, ,–,17.422,−99.451,1251,Mazatlán,Guerrero,Balsas,1.121,0.031
+CM07,Wild, ,–,17.46,−99.368,1107,Mochitlán,Guerrero,Balsas,1.075,0.051
+CM08,Wild, ,–,18.238,−99.218,1101,Paso Morelos,Guerrero,Balsas,1.135,0.029
+CM09,Wild, ,–,18.974,−99.07,1669,Huilotepec,Morelos,Balsas,1.052,0.017
+CM10,Wild, ,–,19.407,−99.627,2581,Villa Seca,Mexico,Balsas,1.19,0.027
+CM11,Wild, ,–,20.139,−102.068,1846,Churintzio,Michoacán,Jalisco,1.06,0.03
+CM12,Wild, ,–,20.627,−104.408,1426,Guachinango,Jalisco,Jalisco,1.178,0.034
+CM13,Wild, ,–,19.715,−104.804,504,Talpitita,Jalisco,Jalisco,1.229,0.032
+SMH564,Wild, ,–,19.91,−104.173,1407,Ejutla,Jalisco,Jalisco,1.094,0.019
+SMH565,Wild, ,–,19.896,−104.177,1317,Ejutla,Jalisco,Jalisco,1.108,0.01
+SMH570,Wild, ,–,19.934,−104.008,944,La Labor,Jalisco,Jalisco,1.123,0.015
+SMH571,Wild, ,–,19.992,−100.885,1861,San Jose de las Pilas,Guanajuato,Jalisco,1.108,0.033
+SMH575,Wild, ,–,20.053,−101.088,1849,San Rafael,Michoacán,Jalisco,1.139,0.031
+SMH576,Wild, ,–,20.161,−101.373,1856,Tejocote de Calera,Guanajuato,Jalisco,1.142,0.031
+SMH577,Wild, ,–,19.732,−104.872,572,El Llanito,Jalisco,Jalisco,1.229,0.055
+SMH578,Wild, ,–,19.535,−104.058,1369,El Rodeo,Jalisco,Jalisco,1.168,0.021
