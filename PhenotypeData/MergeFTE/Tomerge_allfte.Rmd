@@ -5,6 +5,8 @@ output: html_document
 
 Script to join abundance files.  First, we test it on 3 random files.  The files were altered via the PrependHeader.pl script so that they contain the appropriate header to the file, which is a column name for the FTEID and the ID of the file from which it came.  This will allow for the merging to retain an ID of abundance as the column header.
 
+This is a test chunk, ignore.
+
 ```{r}
 tmp <- read.csv(file="FTE_id.fasta",header=TRUE)
 tmp1 <- read.csv(file="RIMPA0142.7.fastq.abund.head",header=TRUE)
@@ -157,10 +159,29 @@ accid <- tmp2$Row.names
 tmp2$Row.names <- NULL
 row.names(tmp2) <- accid
 crap <- tmp2 * sizes
+gencomp <- round(100*colMeans(crap), digits = 2)
 maskadj <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/Maskingadjustment.csv",header=TRUE)
 maxs <- apply(crap, 2, max)
 mins <- apply(crap, 2, min)
 scaled.dna15 <- scale(crap, center = mins, scale = maxs - mins )
+
+temp2 <- as.data.frame(scaled.dna15)
+temp <- rbind(temp2, gencomp)
+crap <- as.data.frame(t(temp))
+colnames(crap)[90] <- "gencomp"
+colnames(crap)[90]
+
+craaap <- crap[order(crap$gencomp),]
+gencomp <- craaap$gencomp 
+craaap$gencomp <- NULL
+craaap2 <- as.matrix(t(craaap))
+
+image(craaap2,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of DNA Elements", col=topo.colors(50))
+umm <- seq(0,1, length.out = 15)
+umm2 <- 0:1
+axis(2, at=umm, labels=gencomp,las=2)
+axis(1,at=umm2,labels=c("Largest","Smallest"))
+
 image(scaled.dna15,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of DNA Elements", col=topo.colors(50))
 gencomp <- round(100*colMeans(crap), digits = 2)
 umm <- seq(0,1, length.out = 15)
@@ -196,7 +217,29 @@ crap <- tmp2 * sizes
 maxs <- apply(crap, 2, max)
 mins <- apply(crap, 2, min)
 scaled.rna15 <- scale(crap, center = mins, scale = maxs - mins )
-image(scaled.rna15,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of Retro Elements", col=topo.colors(50))
+gencomp <- round(100*colMeans(crap), digits = 2)
+
+
+temp2 <- as.data.frame(scaled.rna15)
+temp <- rbind(temp2, gencomp)
+crap <- as.data.frame(t(temp))
+colnames(crap)[90] <- "gencomp"
+colnames(crap)[90]
+
+craaap <- crap[order(crap$gencomp),]
+gencomp <- craaap$gencomp 
+craaap$gencomp <- NULL
+craaap2 <- as.matrix(t(craaap))
+
+image(craaap2,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of RNA Elements", col=topo.colors(50))
+umm <- seq(0,1, length.out = 15)
+umm2 <- 0:1
+axis(2, at=umm, labels=gencomp,las=2)
+axis(1,at=umm2,labels=c("Largest","Smallest"))
+
+library(fields)
+
+image.plot(scaled.rna15,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of Retro Elements", col=topo.colors(50))
 gencomp <- round(100*colMeans(crap), digits = 2)
 umm <- seq(0,1, length.out = 15)
 umm2 <- 0:1

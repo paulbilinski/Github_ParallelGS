@@ -331,7 +331,7 @@ Head to the grindstone on this, thinking about relationship between significance
 accepted <- c(.053 , .078, .153, .291, .485, .657, .828, .918, .973, .990, .999)
 beta <- c(0)
 beta <- as.numeric(union(beta, seq(0.0001,0.001,0.0001)))
-plot(accepted ~ beta, main="Proportion of Significant P-Values under varying B/Va", xlab="B/Va", ylab="Proportion Significant",options(scipen=5),xlim=c(0,.001))
+plot(accepted ~ beta, main="Proportion of Significant P-Values", xlab="B/SqRt(Va)", ylab="Proportion Significant",options(scipen=5),xlim=c(0,.001))
 lines(beta, accepted, lwd=1.5)
 knobmb <- abs(-0.049495790/5431.778287163)
 abline(v=knobmb, col="red",lwd=1.5)
@@ -370,3 +370,134 @@ lm(phenoorder$CentCMB~phenoorder$Altitude)
 ```
 
 With these sims, we see that we can pick up beta/Va of pretty low, which will be a solid sentence in the paper.  I assume we have to redo these things for the teosinte matrices once I build them.
+
+This next chunk will run all of the TE's through jeremy's code.  My goal with this will be to run the TE's through, get a count of how many of the tests are significant, and then plot a distribution of B/Va values.
+
+```{r}
+#to get the genome size info
+setwd("~/Documents/Projects/Genome_Size_Analysis")
+library(ggplot2)
+#install.packages(gridextra)
+dataall <- read.csv("Master_Data_noNA.csv")
+dataal <- subset(dataall, dataall$X1C_GS!="NA")
+data <- subset(dataal, dataal$X1C_GS<4) #changed to include the far outlier
+dmays <- subset(data, data$Species=="mays")
+#to get the FTE tags
+#tmp <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/289_FTE_aggregated.csv",header=TRUE,row.names="FTE_group")
+#tmp2 = as.matrix(tmp)
+#crap <- t(t(tmp2)/tmp2[1189,])
+#perc_FTE <- as.data.frame(t(crap))
+#write.csv(perc_FTE,"~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/289_percFTE_shiny.csv")
+tmp <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/MergeFTE/Abund/289_percFTE_shiny.csv")
+
+tmp2 <- merge(tmp,data, by="uniqid")
+#write.csv(tmp2, "~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/tmp_fte.csv")
+#here, we just copy out the TE %'s
+#crap <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/tmp_subsetfte.csv", row.names="uniqid")
+#or
+colnames(tmp2)
+crap <- tmp2[,1:1189]
+row.names(crap) <- crap$uniqid
+crap
+gsz <- tmp2$X1C_GS
+crap2 <- crap * gsz
+#write.csv(crap2,"~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/tmp_fte_gz.csv")
+#write.csv(data,"~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/lecrap.csv")
+
+gzfte <- merge(crap2,data, by.x="row.names",by.y="uniqid")
+#write.csv(gzfte,"~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/gzfte.csv")
+
+#then go in and change the _ to . in the file.
+#RIMMA0626.2 to RIMMA0626.1
+
+
+#HERE WE START WITH FINALIZED MATRICES
+gzfte <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/gzfte.csv")
+library("rrBLUP")
+geno <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Landrace_noSWUS_matrix.csv",header=TRUE,row.names=1)
+dt <-t(geno)
+A <- A.mat(dt)
+
+
+#to make sure order is the same
+le1 <- as.data.frame(colnames(geno))
+names(le1)[1] <- "names"
+le2 <- as.data.frame(gzfte$Row.names)
+le <- setdiff(le1,le2)
+
+phenoorder <- merge(le1, gzfte, by.x="names", by.y="Row.names",sort=FALSE)
+
+#colnames(phenoorder)# 5 to 1191
+
+betas <- c()
+va <- c()
+pval <- c()
+for(i in 5:1191){
+  tmp = EnvVarTest(phenoorder[,i],A,phenoorder$Altitude)
+  #if ( is.na ( tmp[3])) break
+  betas <- c(betas , tmp[1])
+  va <- c(va , tmp[4])
+  pval <- c(pval , tmp[3])
+}
+
+
+a <- as.vector(which(pval<0.05))
+b<- which(coefvar>1)
+intersect(a,b)
+a
+
+colnames(phenoorder)[a]
+colnames(phenoorder)[b]
+
+for(i in 5:1191){
+  coefvar <- c(coefvar,sd(phenoorder[,i])/mean(phenoorder[,i]))
+}
+
+plot(phenoorder$RLX_wugaab_AC187472.46, phenoorder)
+
+range(phenoorder$RLX_wugaab_AC187472.46)
+
+plot(coefvar)
+length(subset(coefvar,coefvar>1))
+
+par(mfrow=c(2,2))
+tmp <- c()
+nerms <- colnames(phenoorder)
+which()
+for(i in a){
+  tmp <- nerms[i]
+  print(tmp)
+  plot(phenoorder$Altitude,phenoorder[,i],ylab=colnames(phenoorder)[i])
+  abline(lm(phenoorder[,i]~phenoorder$Altitude ),col="red")
+}
+
+
+
+pval2 <- as.numeric(pval)
+signf <- subset(pval2, pval2<0.05)
+length(signf)
+
+hist(betas/sqrt(va),breaks=50,col="gray",main="Distribution of Selection Coeffecients",xlab="Beta/SqRt(Va)")
+
+signf <- subset(pval, pval<0.05)
+
+EnvVarTest(phenoorder[,1111],A,phenoorder$Altitude)
+
+EnvVarTest(phenoorder[,i],A,phenoorder$Altitude)
+betas <- c(betas, EnvVarTest(phenoorder[,i],A,phenoorder$Altitude)[2])
+
+EnvVarTest(phenoorder$TotallTeMB,A,phenoorder$Altitude)
+EnvVarTest(phenoorder$X180knob.,A,phenoorder$Altitude)
+
+phenoorder$Tot
+
+
+#the NA's come because we have a TE that is present in the teo but not in the maize lines, check to see if i get all 0s in maize where we get the Nas
+
+#include an error in measurement term, basically reducing our ability to say heritability is 1 cuz we might not be able to measure super well
+
+#should be sqroot va (variance is a squared, beta is not, make it the same)
+```
+
+
+

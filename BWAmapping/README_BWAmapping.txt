@@ -9,7 +9,7 @@ data.  Here are a few bits of code I use frequently:
 
 #Getting on bigmem to start playing around data interactively
 
-srun --pty -p bigmem bash
+srun --pty -p bigmemh bash
 
 
 1. BUILDING REPETITIVE CONTENT LIBRARIES
