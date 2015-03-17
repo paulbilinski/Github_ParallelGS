@@ -165,11 +165,19 @@ EnvVarTest(phenoorder$CentC.,A,phenoorder$Altitude)
 EnvVarTest(phenoorder$CRMallMB,A,phenoorder$Altitude)
 EnvVarTest(phenoorder$CRMall.,A,phenoorder$Altitude)
 EnvVarTest(phenoorder$X1C_GS,A,phenoorder$Altitude)
+<<<<<<< HEAD
 
 
 #plot(phenoorder$TotallTe. ~ phenoorder$Altitude)
 #lm(phenoorder$TotallTe. ~ phenoorder$Altitude)
 
+=======
+
+
+#plot(phenoorder$TotallTe. ~ phenoorder$Altitude)
+#lm(phenoorder$TotallTe. ~ phenoorder$Altitude)
+
+>>>>>>> 734b6aa2fbd6492078fbcbeff73f551250c1a4db
 ```
 
 Jeremy's simulation code, need to acknowledge NIH grant, reminder for paper.
@@ -213,10 +221,17 @@ Jeremy's simulation code, need to acknowledge NIH grant, reminder for paper.
 # boxplot ( t ( Q.stat ) ~ my.betas , pch = 20 , xlab = expression ( beta ), ylab = expression ( Q[ENV]) )
 # abline ( h = tmp [[ 1 ]] [ 1, 5 ] )
 ```
+<<<<<<< HEAD
 
 
 Chunk for all of the teosintes, though currently not working as I need to make the matrices with population averages of genotypes in RRblup.  Initial population covariance matrices from Bayenv were made by Tim Beissenger, and the pop averages from my phenotypes stuff.  Bayenv uses different assumptions than rrBLUP, and therefore we want to stick to just rrBLUP.
 
+=======
+
+
+Chunk for all of the teosintes, though currently not working as I need to make the matrices with population averages of genotypes in RRblup.  Initial population covariance matrices from Bayenv were made by Tim Beissenger, and the pop averages from my phenotypes stuff.  Bayenv uses different assumptions than rrBLUP, and therefore we want to stick to just rrBLUP.
+
+>>>>>>> 734b6aa2fbd6492078fbcbeff73f551250c1a4db
 ```{r}
 # phenoteo <-read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Teosinte_averages.csv",header=TRUE)
 # 
@@ -331,7 +346,11 @@ Head to the grindstone on this, thinking about relationship between significance
 accepted <- c(.053 , .078, .153, .291, .485, .657, .828, .918, .973, .990, .999)
 beta <- c(0)
 beta <- as.numeric(union(beta, seq(0.0001,0.001,0.0001)))
+<<<<<<< HEAD
 plot(accepted ~ beta, main="Proportion of Significant P-Values", xlab="B/SqRt(Va)", ylab="Proportion Significant",options(scipen=5),xlim=c(0,.001))
+=======
+plot(accepted ~ beta, main="Proportion of Significant P-Values under varying Beta", xlab="B/Va", ylab="Proportion Significant",options(scipen=5),xlim=c(0,.003))
+>>>>>>> 734b6aa2fbd6492078fbcbeff73f551250c1a4db
 lines(beta, accepted, lwd=1.5)
 knobmb <- abs(-0.049495790/5431.778287163)
 abline(v=knobmb, col="red",lwd=1.5)
@@ -349,6 +368,7 @@ crmmb <- abs(0.0004516771/0.6025925993)
 abline(v=crmmb, col="blue",lwd=1.5)
 crm. <- abs(0.000002730368/0.000606835736)
 abline(v=centc., col="blue")
+<<<<<<< HEAD
 betasmb <- c(0.049495790,0.061480283,0.00008894284)
 vasmb <- c(5431.778287163,8727.985264731,5.18658746447)
 fraction = betasmb/vasmb
@@ -356,6 +376,10 @@ cols <- c("dark blue","dark red","olivedrab")
 barplot(fraction, col=cols, names.arg=c("180 Knob", "TE", "CentC"), ylab="B/Va")
 betasall <- c(0.049495790,0.001419767,0.061480283,0.0004300344,0.00008894284,0.00001546521,0.0004516771,0.000002730368)
 vasall <- c(5431.778287163,4.972794944,8727.985264731,2.2614178222,5.18658746447,0.00568202942,0.6025925993,0.000606835736)
+=======
+betas<- c(0.049495790,0.001419767,0.061480283,0.0004300344,0.00008894284,0.00001546521,0.0004516771,0.000002730368)
+vas <- c(5431.778287163,4.972794944,8727.985264731,2.2614178222,5.18658746447,0.00568202942,0.6025925993,0.000606835736)
+>>>>>>> 734b6aa2fbd6492078fbcbeff73f551250c1a4db
 par(mfrow=c(3,1))
 barplot(log10(betas),main="beta")
 barplot(log10(vas),main="vas")
@@ -370,6 +394,7 @@ lm(phenoorder$CentCMB~phenoorder$Altitude)
 ```
 
 With these sims, we see that we can pick up beta/Va of pretty low, which will be a solid sentence in the paper.  I assume we have to redo these things for the teosinte matrices once I build them.
+<<<<<<< HEAD
 
 This next chunk will run all of the TE's through jeremy's code.  My goal with this will be to run the TE's through, get a count of how many of the tests are significant, and then plot a distribution of B/Va values.
 
@@ -501,3 +526,5 @@ phenoorder$Tot
 
 
 
+=======
+>>>>>>> 734b6aa2fbd6492078fbcbeff73f551250c1a4db
