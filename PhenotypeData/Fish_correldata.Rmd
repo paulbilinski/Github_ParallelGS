@@ -1,0 +1,13 @@
+---
+title: "FISH_correldata"
+output: html_document
+---
+
+```{r}
+fish <- read.csv("Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/FISH_mexdata.csv")
+plot(fish$FISH180 ~ fish$X180knobMB, ylab="FISH Pop Average", xlab="Sequence Pop Average", main="Correlation of 180Knob Abundance",pch=19,col="black")
+abline(lm(fish$FISH180 ~ fish$X180knobMB),col="black", lty=2)
+mtext("r=.78",side=1, adj=.8,padj=-4)
+cor(fish$FISH180, fish$X180knobMB)
+?mtext
+```

@@ -1,0 +1,86 @@
+---
+title: "Repeatpanelplots"
+output: html_document
+---
+
+```{r}
+#PHENOTYPE DATA, ultimately loaded into phenoorder data frame.
+lrdta <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Final_Phenotypes/Landrace_data.csv")
+lrdta$X <- NULL
+data <- subset(lrdta, lrdta$Region!="SWUS")
+
+#KINSHIP MATRIX, this is saved in Landrace_kinshipmatrix.csv
+geno <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Landrace_noSWUS_matrix.csv",header=TRUE,row.names=1)
+#dt <-t(geno)
+#A <- A.mat(dt)
+#write.csv(A,"~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Final_Phenotypes/Landrace_kinshipmatrix.csv")
+#to make sure order is the same
+A <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Final_Phenotypes/Landrace_kinshipmatrix.csv",row.names="X")
+
+le1 <- as.data.frame(colnames(geno))
+names(le1)[1] <- "names"
+le2 <- as.data.frame(data$Row.names)
+#again, this is where i realize i had to rename 626.2 to 626.1
+phenoorder <- merge(le1, data, by.x="names", by.y="Row.names",sort=FALSE)
+```
+
+```{r}
+mexphen1 <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Master_mexnucleo_pruned2.csv") #phenotype data in matching order
+
+ggplot(mexphen1, aes(Altitude, X1c),) + geom_point()+ ylab("2C Genome Size (pg)") +guides(color=FALSE) +xlab("Altitude (m)")
+
+mexphen <- subset(mexphen1, mexphen1$Altitude>2000)
+
+
+p4 <- ggplot(mexphen, aes(Altitude, X1c),) + geom_point()+ ylab("2C Genome Size (pg)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE) +xlab("Altitude (m)")#ggtitle("Genome Size")
+
+p5 <- ggplot(mexphen, aes(Altitude, X180knobbp),) + geom_point()+ ylab("180bp Knob (bp)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE) +xlab("Altitude (m)")#ggtitle("Genome Size")
+
+p6 <- ggplot(mexphen, aes(Altitude, TotalTebp),) + geom_point()+ ylab("Total TE content (bp)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE) +xlab("Altitude (m)")#ggtitle("Genome Size")
+
+```
+
+
+```{r}
+library(gridExtra)
+phenoorder$Group <- as.factor(phenoorder$Group)
+phenoorder$X2c <- 2 * phenoorder$X1C_GS
+
+p1<-ggplot(phenoorder, aes(Altitude, X2c,color=Group),) + geom_point()+ ylab("2C Genome Size (pg)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE) +xlab("Altitude (m)")#ggtitle("Genome Size")
+
+p2<-ggplot(phenoorder, aes(Altitude, X180knobbp,color=Group),) + geom_point()+ ylab("180bp Knob (bp)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE)+xlab("Altitude (m)")#+ ggtitle("Genome Size")
+
+p3<-ggplot(phenoorder, aes(Altitude, TotallTebp,color=Group),) + geom_point()+ ylab("Total TE content (bp)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE)+xlab("Altitude (m)")#+ ggtitle("Landrace Genome Size")
+
+grid.arrange(p1,p2,p3,p4,p5,p6,ncol=3)
+
+```
+
+```{r}
+p1<-ggplot(phenoorder, aes(Altitude, X2c,color=Group),) + geom_point()+ ggtitle("2C Genome Size (pg)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE) +xlab("Altitude (m)")+ ylab("")#ggtitle("Genome Size")
+
+p2<-ggplot(phenoorder, aes(Altitude, X180knobbp,color=Group),) + geom_point()+ ggtitle("180bp Knob (bp)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE)+xlab("Altitude (m)")+ ylab("")#+ ggtitle("Genome Size")
+
+p3<-ggplot(phenoorder, aes(Altitude, TotallTebp,color=Group),) + geom_point()+ ggtitle("Total TE content (bp)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE)+xlab("Altitude (m)")+ ylab("")#+ ggtitle("Landrace Genome Size")
+
+p4 <- ggplot(mexphen, aes(Altitude, X1c),) + geom_point()+ ylab("") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE) +xlab("Altitude (m)")#ggtitle("Genome Size")
+
+p5 <- ggplot(mexphen, aes(Altitude, X180knobbp),) + geom_point()+ ylab("") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE) +xlab("Altitude (m)")#ggtitle("Genome Size")
+
+p6 <- ggplot(mexphen, aes(Altitude, TotalTebp),) + geom_point()+ ylab("") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE) +xlab("Altitude (m)")#ggtitle("Genome Size")
+
+grid.arrange(p1,p2,p3,p4,p5,p6,ncol=3)
+
+```
+
+CentC supplemental
+
+```{r}
+pcl<-ggplot(phenoorder, aes(Altitude, CentCbp,color=Group),) + geom_point()+ ylab("CentC (bp)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE)+xlab("Altitude (m)")+ggtitle("Landrace CentC content")#+ ggtitle("Landrace Genome Size")
+
+pcm <- ggplot(mexphen, aes(Altitude, CentCbp),) + geom_point()+ ylab("CentC (bp)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE) +xlab("Altitude (m)")+ggtitle("Mexicana CentC content")#ggtitle("Genome Size")
+
+
+grid.arrange(pcl,pcm,ncol=2)
+
+```

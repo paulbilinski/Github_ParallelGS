@@ -1,0 +1,65 @@
+---
+title: "Mexicana_Emma"
+output: html_document
+---
+
+Main hypothesis: selection for genome size along an altitudinal gradient across the entire range.
+
+```{r}
+#install.packages("emma")
+library ( emma )
+#install.packages("rrBLUP")
+library("rrBLUP")
+
+pheno <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Master_mexnucleo_pruned.csv") #phenotype data in matching order
+geno <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Mexicana_conversion/GBS_final.txt")
+geno$X <- NULL
+
+dt <- t(geno)
+
+A <- A.mat(dt)
+
+#create seperate matrices for each phenotype you want to model.
+gs <- t ( as.matrix ( pheno$GS_bp, ncol = 1 ) )
+gsgb <- gs/1000000000
+
+knob180 <- t ( as.matrix (pheno$X180knobbp, ncol=1))
+knob180gb <- knob180/1000000000
+
+alt <- t ( as.matrix ( pheno$Altitude , ncol = 1 ) )
+alt <- alt - mean ( alt ) + 0.5
+#mean centering between 0 and 1
+
+A <- as.matrix ( A )
+#make sure your kinship matrix is a matrix.
+
+out.gsgb <- emma.REML.t ( gsgb , alt , K = A )
+out.gsgb
+```
+
+Alternate hypothesis.  Data cleaved at the 2200M Altitude to look for linear selection after that height threshold.
+
+```{r}
+library(emma)
+library("rrBLUP")
+setwd("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SelectionTests/SelectionTestData/")
+
+gbs<-read.csv("GBS_alt_threshold_final.txt")
+gbs$X <- NULL
+dt<-(t(gbs))
+A<-A.mat(dt)
+pheno<-read.csv("Pheno_alt_threshold_ordered.csv")
+
+gs <- t ( as.matrix (pheno$GS_bp, ncol=1) )
+gsgb <- gs/1000000000
+
+alt <- t ( as.matrix (pheno$Altitude, ncol=1))
+alt <- alt - mean(alt) + 0.5
+
+out.gsgb <- emma.REML.t( gsgb,alt,K=A)
+out.gsgb
+plot(pheno$Altitude,pheno$X1C_GS,xlab="Altitude (m)",ylab="2C Genome Size (pg)",pch=19, col="salmon")
+abline(lm(pheno$X1C_GS~pheno$Altitude),lwd=2,lty=2)
+?abline
+```
+

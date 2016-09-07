@@ -1,0 +1,401 @@
+---
+title: "Emma_selection"
+output: html_document
+---
+
+We the refocusing of our project on EMMA and telling a story of 1) Selection on GS, 2) selection on knobs, 3) selection on GS absent knobs, 4) selection on individual components with GS as a cofactor in the model.  I will first run through all of our maize samples, and leave any teosinte things for later this year.
+
+First, we load the packages and read in the data.
+
+```{r}
+#install.packages("emma
+library ( emma )
+#install.packages("rrBLUP")
+library("rrBLUP")
+#?A.mat
+#PHENOTYPE DATA, ultimately loaded into phenoorder data frame.
+lrdta <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Final_Phenotypes/Landrace_data.csv")
+lrdta$X <- NULL
+data <- subset(lrdta, lrdta$Region!="SWUS")
+
+#KINSHIP MATRIX, this is saved in Landrace_kinshipmatrix.csv
+geno <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Landrace_noSWUS_matrix.csv",header=TRUE,row.names=1)
+#dt <-t(geno)
+#A <- A.mat(dt)
+#write.csv(A,"~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Final_Phenotypes/Landrace_kinshipmatrix.csv")
+#to make sure order is the same
+A <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Final_Phenotypes/Landrace_kinshipmatrix.csv",row.names="X")
+
+le1 <- as.data.frame(colnames(geno))
+names(le1)[1] <- "names"
+le2 <- as.data.frame(data$Row.names)
+#again, this is where i realize i had to rename 626.2 to 626.1
+phenoorder <- merge(le1, data, by.x="names", by.y="Row.names",sort=FALSE)
+```
+
+Run emma here, the output here should be a single p-value.  This is because we are just testing one vector at a time.  The inputs are genome sizes and altitudes as a hortizontal matrix.  The kinship matrix is a nxn matrix, where n is the length in your gs and alt matrix.
+
+```{r}
+#KINSHIP MATRIX, this is saved in Landrace_kinshipmatrix.csv
+geno <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Landrace_noSWUS_matrix.csv",header=TRUE,row.names=1)
+#dt <-t(geno)
+#A <- A.mat(dt)
+#write.csv(A,"~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Final_Phenotypes/Landrace_kinshipmatrix.csv")
+#to make sure order is the same
+A <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Final_Phenotypes/Landrace_kinshipmatrix.csv",row.names="X")
+#PHENOTYPE DATA, ultimately loaded into phenoorder data frame.
+lrdta <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Final_Phenotypes/Landrace_data.csv")
+lrdta$X <- NULL
+data <- subset(lrdta, lrdta$Region!="SWUS")
+le1 <- as.data.frame(colnames(geno))
+names(le1)[1] <- "names"
+le2 <- as.data.frame(data$Row.names)
+#again, this is where i realize i had to rename 626.2 to 626.1
+phenoorder <- merge(le1, data, by.x="names", by.y="Row.names",sort=FALSE)le1 <- as.data.frame(colnames(geno))
+names(le1)[1] <- "names"
+le2 <- as.data.frame(data$Row.names)
+#again, this is where i realize i had to rename 626.2 to 626.1
+phenoorder <- merge(le1, data, by.x="names", by.y="Row.names",sort=FALSE)
+```
+
+Making heatmap of relatedness
+```{r}
+library(ggplot2)
+library("rrBLUP")
+geno <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Landrace_noSWUS_matrix.csv",header=TRUE,row.names=1)
+geno2<- as.matrix(geno)
+heats <- geno2[,c("RIMMA0389.1","RIMMA0398.1","RIMMA0395.2","RIMMA0696.1","RIMMA0703.1","RIMMA0720.1","RIMMA0397.1","RIMMA0710.1","RIMMA0716.1","RIMMA0393.1","RIMMA0409.1","RIMMA0410.1B","RIMMA0733.1","RIMMA0733.1","RIMMA0729.1","RIMMA0729.1","RIMMA0615.1","RIMMA0399.1","RIMMA0690.1","RIMMA0628.1","RIMMA0390.1","RIMMA0406.1","RIMMA0407.1","RIMMA0433.1","RIMMA0392.1","RIMMA0700.1","RIMMA0701.1","RIMMA0391.1B","RIMMA0428.1","RIMMA0619.1","RIMMA0709.1","RIMMA0721.1","RIMMA0394.2","RIMMA0403.2","RIMMA0702.1","RIMMA0730.1","RIMMA0730.1","RIMMA0691.1","RIMMA0708.1","RIMMA0396.1","RIMMA0405.1B","RIMMA0727.1","RIMMA0727.1","RIMMA0712.1","RIMMA0441.1","RIMMA0388.1","RIMMA0404.1","RIMMA0731.1","RIMMA0731.1","RIMMA0462.1","RIMMA0620.1","RIMMA0464.1","RIMMA0616.1","RIMMA0621.1","RIMMA0680.1","RIMMA0658.1","RIMMA0417.1","RIMMA0418.1","RIMMA0614.1","RIMMA0663.1","RIMMA0423.1","RIMMA0425.1","RIMMA0416.1","RIMMA0661.1","RIMMA0662.1","RIMMA0422.1","RIMMA0436.1","RIMMA0657.1","RIMMA0667.1","RIMMA0630.1","RIMMA0421.1","RIMMA0626.1","RIMMA0465.1","RIMMA0424.1","RIMMA0671.1","RIMMA0426.1","RIMMA0623.1","RIMMA0430.1","RIMMA0625.1","RIMMA0674.1","RIMMA0437.1","RIMMA0467.1","RIMMA0438.1","RIMMA0431.1","RIMMA0439.1","RIMMA0473.1","RIMMA0468.1","RIMMA0466.1")]
+dheats <-t(heats)
+A.heats <- A.mat(dheats)
+
+image(A.heats,xaxt='n',yaxt='n')
+
+
+
+```
+
+
+```{r}
+library(gridExtra)
+phenoorder$Group <- as.factor(phenoorder$Group)
+
+phenoorder$X2c <- 2 * phenoorder$X1C_GS
+
+p1<-ggplot(phenoorder, aes(Altitude, X2c,color=Group),) + geom_point()+ ylab("2C Genome Size (pg)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE) +xlab("Altitude (m)")#ggtitle("Genome Size")
+
+p2<-ggplot(phenoorder, aes(Altitude, X180knobbp,color=Group),) + geom_point()+ ylab("180bp Knob (bp)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE)+xlab("Altitude (m)")#+ ggtitle("Genome Size")
+
+p3<-ggplot(phenoorder, aes(Altitude, TotallTebp,color=Group),) + geom_point()+ ylab("Total TE content (bp)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE)+xlab("Altitude (m)")#+ ggtitle("Landrace Genome Size")
+
+p4<-ggplot(phenoorder, aes(Altitude, CentCbp,color=Group),) + geom_point()+ ylab("CentC content (bp)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE)+xlab("Altitude (m)")#+ ggtitle("Landrace Genome Size")
+
+grid.arrange(p1,p2,p3,p4,ncol=2)
+
+ggplot(dteo, aes(Altitude, TR1bp, color=Species)) + geom_point()+ ylab("Base Pairs") + theme(legend.title=element_blank()) +ggtitle("TR1 BP")+ geom_smooth(method=lm)
+
+
+```
+
+
+```{r}
+#?emma.REML.t
+gs <- t ( as.matrix ( phenoorder$GS_bp, ncol = 1 ) )
+gsgb <- gs/1000000000
+#rescale gs so that it has less zeros
+alt <- t ( as.matrix ( phenoorder$Altitude , ncol = 1 ) )
+alt <- alt - mean ( alt ) + 0.5
+#mean centering between 0 and 1
+A <- as.matrix ( A )
+
+source("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SelectionTests/jri_emma_returnbeta.txt")
+
+#overall gs
+out.gsgb <- emma.REML.t ( gsgb , alt , K = A )
+out.gsgb <- emma.REML.t_beta ( gsgb , alt , K = A )
+out.gsgb
+?emma.REMLE
+emma.REML.t
+out.gsgb
+# pval: 0.0003027487
+#beta: -0.0001104795
+?emma.REML.t
+
+##scratch code area
+plot(phenoorder$Altitude~phenoorder$X1C_GS,xlab="1C Genome Size",ylab="Altitude",pch=19,col="blue")
+abline(a=3000,b=-3.77,col="red")
+?abline
+##end scratch code area
+
+#selection on just 180knobs
+knob <- t ( as.matrix ( phenoorder$X180knobbp, ncol = 1 ) )
+knobgb <- knob/1000000000
+out.knobgb <- emma.REML.t ( knobgb , alt , K = A )
+out.knobgb <- emma.REML.t_beta ( knobgb , alt , K = A )
+
+out.knobgb
+# pval: 0.00150226
+# beta: -4.840789e-05
+
+#selection on just tr1
+tr1 <- t ( as.matrix ( phenoorder$TR1bp, ncol = 1 ) )
+tr1gb <- tr1/1000000000
+out.tr1gb <- emma.REML.t ( tr1gb , alt , K = A )
+out.tr1gb <- emma.REML.t_beta ( tr1gb , alt , K = A )
+out.tr1gb
+# pval: 0.0004733028
+# beta: -8.098803e-06
+
+#selection on centc
+centc <- t ( as.matrix ( phenoorder$CentCbp, ncol = 1 ) )
+centcgb <- centc/1000000000
+out.centcgb <- emma.REML.t ( centcgb , alt , K = A )
+out.centcgb <- emma.REML.t_beta ( centcgb , alt , K = A )
+
+out.centcgb
+# pval: 0.8488931
+# beta: 8.700442e-08
+
+#selection on overall TE's
+tes <- t ( as.matrix ( phenoorder$TotallTebp, ncol = 1 ) )
+tesgb <- tes/1000000000 
+out.tesgb <- emma.REML.t ( tesgb , alt , K = A )
+out.tesgb <- emma.REML.t_beta ( tesgb , alt , K = A )
+out.tesgb
+#pval: 0.00184469
+#beta: -6.012855e-05
+
+#selection on gs-knobs
+noknob <- t ( as.matrix ( phenoorder$Gsnoknob, ncol = 1 ) )
+noknobgb <- noknob/1000000000
+out.noknobgb <- emma.REML.t ( noknobgb , alt , K = A )
+out.noknobgb
+# pval: 0.01652117
+```
+
+So those are models where we show that there is selection on each of the big contributors to genome size, and then selection on things outside of knobs.  We need to now go through and run elements with overall genome size incorporated into the model.
+
+```{r}
+tes <- t ( as.matrix ( phenoorder$TotallTebp, ncol = 1 ) )
+tesgb <- tes/1000000000 
+fin.te <- emma.REML.t ( tes , alt , X0 =  cbind ( rep ( 1 , 83 ) , c ( gsgb ) ) , K = A )
+fin.te <- emma.REML.t_beta ( tes , alt , X0 =  cbind ( rep ( 1 , 83 ) , c ( gsgb ) ) , K = A )
+
+fin.te
+# pval: 0.801715, no selection on overall TE content when we account for GS
+
+#knobgb 180
+fin.knob <- emma.REML.t ( knobgb , alt , X0 =  cbind ( rep ( 1 , 83 ) , c ( gsgb ) ) , K = A )
+fin.knob <- emma.REML.t_beta ( knobgb , alt , X0 =  cbind ( rep ( 1 , 83 ) , c ( gsgb ) ) , K = A )
+
+fin.knob
+# pval: 0.3346928, no selection on 180knobs when we account for GS
+
+#tr1gb
+fin.tr1 <- emma.REML.t ( tr1gb , alt , X0 =  cbind ( rep ( 1 , 83 ) , c ( gsgb ) ) , K = A )
+fin.tr1 <- emma.REML.t_beta ( tr1gb , alt , X0 =  cbind ( rep ( 1 , 83 ) , c ( gsgb ) ) , K = A )
+
+fin.tr1
+# pval: 0.07664357, no selection on tr1 when we account for GS
+
+#centcgb
+fin.centc <- emma.REML.t_beta ( centcgb , alt , X0 =  cbind ( rep ( 1 , 83 ) , c ( gsgb ) ) , K = A )
+fin.centc
+
+#noknobgb
+fin.noknobgb <- emma.REML.t ( noknobgb , alt , X0 =  cbind ( rep ( 1 , 83 ) , c ( gsgb ) ) , K = A )
+fin.noknobgb
+# pval: 0.07664357, no selection on tr1 when we account for GS
+```
+
+Important to point out now that converting bp to gb makes no difference on the pval.  So I will skip it when running through all TEs.  This next chunk is to run all of my TE abundances through, and see how many show evidence of selection.  
+
+```{r}
+perte <- data[,3:1189]
+colnames(perte)
+
+#run it with named var
+try1 <- t ( as.matrix ( perte$DHH_Hip1_1 , ncol = 1 ) )
+tmp <- emma.REML.t ( try1 , alt , X0 =  cbind ( rep ( 1 , 83 ) , c ( gsgb ) ) , K = A )
+tmp
+#now with column number var
+tmp <- emma.REML.t ( perte[,1] , alt , X0 =  cbind ( rep ( 1 , 83 ) , c ( gsgb ) ) , K = A )
+tmp
+#they return the same
+as.numeric(tmp$ps)
+
+#NOW FOR DA WHOLE CABOODLE.
+pval <- c()
+for(i in 1:1187){
+  tmp <- emma.REML.t ( perte[,i] , alt , X0 =  cbind ( rep ( 1 , 83 ) , c ( gsgb ) ) , K = A )
+  pval <- c(pval , as.numeric(tmp$ps))
+}
+#So on the first run of this, it gives me an error where I have my all 0 values.  have to remove those 5 TEs.  I do so by seeing where the pval stops, and thats the next one that i need to NULL out.
+
+perte <- data[,3:1189]
+#we want to go to the original data frame and start nulling out those column IDs, not nulling out one at a time
+
+perte2 <- perte[,-which(colSums(perte)==0)]
+
+#So all of those numbers are a bit off from the original data matrix because im nulling out one at a time.  Below are the indexes in the full data frame maybe?
+
+#also have to 0 out the pval before reruning
+pval <- c()
+for(i in 1:ncol(perte2)){
+  tmp <- emma.REML.t ( perte2[,i] , alt , X0 =  cbind ( rep ( 1 , 83 ) , c ( gsgb ) ) , K = A )
+  pval <- c(pval , as.numeric(tmp$ps))
+}
+length(which(pval< {0.05/ncol(perte2)}))
+32/ncol(perte2)
+```
+
+So, we get 32/1156 TE's showing significance.  Is that meaningful?  We can do some permutation tests to see.  Bottom line, that number is not so low that we think its a problem.  Thank you Tim for all of the guidance, in making the code run easier and also for getting the perutation test going.  The next chunk is a simple permutation test to see how often we get numbers in our range from random sampling.  Low probability if FDR is 0.05, but tweak it a little and 32 seems like a fine number, just on the low end.
+
+```{r}
+perm<-c()
+for(i in 1:10000) perm[i] <- sum(sample(c(0,1),size=1157,replace=T,prob=c(0.97,0.03)))
+length(which(perm<=32))/length(perm)
+#Resons why this might be messing up:
+#correlation between abundances, meaning we dont actually have 1156 dif groups, is there a way to test that?
+#tails of distribution might be different
+#read divergence, can't estimate abundances super well, maybe make better by only looking at things with an appreciable abundance period?
+```
+
+Also test TE's in model without GS.  See how that differs.
+
+```{r}
+pval <- c()
+tstat <- c()
+for(i in 1:ncol(perte2)){
+  tmp <- emma.REML.t ( perte2[,i] , alt , K = A )
+  pval <- c(pval , as.numeric(tmp$ps))
+  tstat <- c(tstat, as.numeric(tmp$stats))
+}
+
+length(which(tstat< 0))
+
+length(which(pval< 0.05))
+length(which(pval< {0.05/ncol(perte2)}))
+81/ncol(perte2)
+```
+
+Kate and helping me figure out beta.
+
+```{r}
+library(kinship2)
+library(coxme)
+library(nlme)
+
+
+# Matrix - Paul, fix matrix
+
+kinmat <- A
+varlist=coxmeMlist(list(kinmat), rescale = F, pdcheck = F, positive=F)
+
+# I just made 
+df <- data.frame(lrdta$Row.names,lrdta$GS_bp, lrdta$Altitude)
+
+GS <- df$lrdta.GS_bp
+GS <- GS/1000000000
+alt <- df$lrdta.Altitude
+gid <- as.character(df$lrdta.Row.names)
+
+# Varlist - gotta match names to the gid vector - this is the matrix in the model
+gid <- as.character(phenoorder$names)
+
+fit <- lmekin(gsgb ~ alt + (1|gid), varlist=varlist)
+########################################################################
+gsgb
+
+# but otherwise - you get your beta - same as fixed effect from lm
+
+fit <- lmekin(GS ~ alt + (1|gid))
+plot(GS~alt)
+fit
+summary(fit)
+```
+
+
+
+
+
+Scripts to make some figures.
+
+```{r}
+library(ggplot2)
+library(gridExtra)
+dataall <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Final_Phenotypes/Master_Data_prunedbpconv_noswus.csv")
+dataal <- subset(dataall, dataall$X1C_GS!="NA")
+data <- subset(dataal, dataal$X1C_GS<3.6)
+dmays <- subset(data, data$Species=="mays")
+dteo <- subset(data, data$Species!="mays")
+
+p1 <- ggplot(dmays, aes(Region, X1C_GS, fill=Region),) + geom_boxplot()+ ylab("1C Genome Size") + ggtitle("Landrace Genome Size") + theme(legend.position = "none") + theme(plot.background = element_rect(fill = "transparent",colour = NA))
+p1
+
+ggplot(data, aes(Region, X1C_GS, fill=Species),) + geom_boxplot()+ ylab("1C Genome Size") + ggtitle("Zea Genome Size") + theme(plot.background = element_rect(fill = "transparent",colour = NA))+theme(axis.text=element_text(size=13), axis.title=element_text(size=14,face="bold"),legend.text=element_text(size=13))
+
+
+
+ggplot(dteo, aes(Species, X1C_GS, fill=Species)) + geom_boxplot()+ ylab("1C Genome Size") + ggtitle("Teosinte Genome Size") + theme(legend.position = "none") + theme(plot.background = element_rect(fill = "transparent",colour = NA))
+p1
+
+ggplot(dteo, aes(Altitude, TR1bp, color=Species)) + geom_point()+ ylab("Base Pairs") + theme(legend.title=element_blank()) +ggtitle("TR1 BP")+ geom_smooth(method=lm)
+
+ggplot(dmays, aes(Altitude, X180knobbp, color=Species)) + geom_point()+ ylab("Base Pairs") + theme(legend.title=element_blank()) +ggtitle("180 Knob BP")+ geom_smooth(method=lm)
+
+ggplot(data, aes(Altitude, CentCbp, color=Species)) + geom_point()+ ylab("Base Pairs") + theme(legend.title=element_blank()) +ggtitle("CentC") + geom_smooth(method=lm)
+
+
+
+#Making % composition side by side barplots
+library(plyr)
+library(plotrix)
+library(reshape2)
+
+agg <- ddply(data, .(Species, Region), numcolwise(mean))
+logagg <- log10(agg[,8:ncol(agg)]/1000000)
+#logagg <- logagg2 - 6.5
+ag <- as.data.frame(c(agg[,1:7],logagg))
+cleanag <- ag[,c("Species","Region","TotallTebp", "X180knobbp","TR1bp","CentCbp")]
+cleanag$Taxa <- paste(cleanag$Species,cleanag$Region)
+cleanag2 <- cleanag[,3:ncol(cleanag)] 
+cleanag.m <- melt(cleanag2,id.vars="Taxa")
+
+log10(1000)
+crap <- c("a","b","c")
+
+ggplot(cleanag.m, aes(Taxa, value)) + geom_bar(aes(fill = variable), position = "dodge", stat="identity") + labs(y="log Composition") + scale_fill_manual(name="", breaks=c("TotallTebp", "X180knobbp","TR1bp","CentCbp"), labels=c("Total TE", "180 Knob","TR1","CentC"), values = c("darkgreen", "royalblue4", "khaki4", "peru")) + theme(axis.text=element_text(size=13), axis.title=element_text(size=14,face="bold"),legend.text=element_text(size=13)) + scale_y_continuous(breaks = 1:3, labels=c("10","100","1000"))
+
+
+
+?axis.text.y
+
+ggplot(cleanag.m, aes(Taxa, value)) + geom_bar(aes(fill = variable), position = "dodge", stat="identity") + labs(y="log Composition") + theme(axis.ticks = element_blank(), axis.text.y = element_blank()) + scale_fill_manual(name="", breaks=c("TotallTebp", "X180knobbp","TR1bp","CentCbp"), labels=c("Total TE", "180 Knob","TR1","CentC"), values = c("darkgreen", "royalblue4", "khaki4", "peru"))+theme(axis.text=element_text(size=13), axis.title=element_text(size=14,face="bold"),legend.text=element_text(size=13))
+
+```
+
+Dodge bar graph but with repeats as groups
+
+```{r}
+agg <- ddply(data, .(Species, Region), numcolwise(mean))
+logagg <- log10(agg[,8:ncol(agg)]/1000000)
+ag <- as.data.frame(c(agg[,1:7],logagg))
+cleanag <- ag[,c("TotallTebp", "X180knobbp","TR1bp","CentCbp")]
+tcleanag <- t(cleanag)
+colnames(tcleanag) <- cleanag$Taxa
+#something about missing the taxa names.
+tcleanag.m <- melt(tcleanag,id.vars="row.names")
+```
+
+```{r}
+library(gridExtra)
+p1 <- ggplot(tcleanag.m, aes(Var1, value)) + geom_bar(aes(fill = Var2), position = "dodge", stat="identity") + labs(y="Log Scale Megabases",x="Repeat Class") + scale_y_continuous(breaks = c(0,1,2,3,4), labels = c(0,10,100,1000,10000)) + scale_fill_manual(name="", breaks=c("mays MH", "mays ML","mays SAH","mays SAL","mexicana MH","parviglumis ML"), labels=c("mays MH", "mays ML","mays SAH","mays SAL","mexicana MH","parviglumis ML"), values = c("orangered2", "orangered4", "salmon2", "salmon4","deepskyblue2","deepskyblue4")) + scale_x_discrete(breaks = c("TotallTebp","X180knobbp","TR1bp","CentCbp"), labels = c("Total TE","180 Knob","TR1","CentC"))+theme(axis.text=element_text(size=18), axis.title=element_text(size=18,face="bold"),legend.text=element_text(size=18))
+p1
+p2 <- ggplot(data, aes(Region, X1C_GS, fill=Species)) + geom_boxplot()+ ylab("1C Genome Size") + theme(plot.background = element_rect(fill = "transparent",colour = NA))+theme(axis.text=element_text(size=18), axis.title=element_text(size=18,face="bold"),legend.text=element_text(size=18)) + scale_fill_manual(name="",values=c("orangered2", "deepskyblue2", "deepskyblue4"))
+p2
+p1
+
+grid.arrange(p2,p1,ncol=2)
+```
+
+

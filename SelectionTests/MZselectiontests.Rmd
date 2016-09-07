@@ -9,7 +9,7 @@ Read in the maize data with this chunk.
 
 ```{r}
 setwd("~/Documents/Projects/Genome_Size_Analysis")
-library(ggplot2)
+library(ggplot2) #something stupid ggplot2 crashing rstudio
 #install.packages(gridextra)
 library(gridExtra)
 dataall <- read.csv("Master_Data_noNA.csv")
@@ -25,6 +25,11 @@ dteo <- rbind(dparv,dmex)
 Plot the variation.  Here, we note that several repeats have opposing clines.  Furthermore, we also find that the teosintes have a different trend in terms of within species genome size cline.  Though they do show that the highland mex is of average smaller size than the lowland parv, both mex and parv increase in genome size across altitude. 
 
 ```{r}
+ggplot(dmayst, aes(Altitude, X1C_GS, color=Region)) + geom_point(size=3)+ ylab("180 Knob MB")+ggtitle("Genome size measure in mays")+stat_smooth(aes(group=Group),method="lm",se=FALSE,linetype=2,color="black")#+ theme(legend.position="none")
+ggplot(dmayst, aes(Altitude, X180knobMB, color=Region)) + geom_point(size=3)+ ylab("180 Knob MB")+ theme(legend.position="none")+stat_smooth(aes(group=Group),method="lm",se=FALSE,linetype=2,color="black")+ggtitle("Knob content in mays")
+
+
+
 p1 <- ggplot(dmayst, aes(Region, X180knobMB, color=Region)) + geom_boxplot()+ ylab("180 Knob MB")+ theme(legend.position="none")
 p <- ggplot(dmayst, aes(Region, TotallTeMB, color=Region)) + geom_boxplot()+ ylab("Total TE MB")+ theme(legend.position="none")
 grid.arrange(p1,p, ncol=2)
@@ -165,19 +170,8 @@ EnvVarTest(phenoorder$CentC.,A,phenoorder$Altitude)
 EnvVarTest(phenoorder$CRMallMB,A,phenoorder$Altitude)
 EnvVarTest(phenoorder$CRMall.,A,phenoorder$Altitude)
 EnvVarTest(phenoorder$X1C_GS,A,phenoorder$Altitude)
-<<<<<<< HEAD
-
-
 #plot(phenoorder$TotallTe. ~ phenoorder$Altitude)
 #lm(phenoorder$TotallTe. ~ phenoorder$Altitude)
-
-=======
-
-
-#plot(phenoorder$TotallTe. ~ phenoorder$Altitude)
-#lm(phenoorder$TotallTe. ~ phenoorder$Altitude)
-
->>>>>>> 734b6aa2fbd6492078fbcbeff73f551250c1a4db
 ```
 
 Jeremy's simulation code, need to acknowledge NIH grant, reminder for paper.
@@ -221,17 +215,9 @@ Jeremy's simulation code, need to acknowledge NIH grant, reminder for paper.
 # boxplot ( t ( Q.stat ) ~ my.betas , pch = 20 , xlab = expression ( beta ), ylab = expression ( Q[ENV]) )
 # abline ( h = tmp [[ 1 ]] [ 1, 5 ] )
 ```
-<<<<<<< HEAD
-
 
 Chunk for all of the teosintes, though currently not working as I need to make the matrices with population averages of genotypes in RRblup.  Initial population covariance matrices from Bayenv were made by Tim Beissenger, and the pop averages from my phenotypes stuff.  Bayenv uses different assumptions than rrBLUP, and therefore we want to stick to just rrBLUP.
 
-=======
-
-
-Chunk for all of the teosintes, though currently not working as I need to make the matrices with population averages of genotypes in RRblup.  Initial population covariance matrices from Bayenv were made by Tim Beissenger, and the pop averages from my phenotypes stuff.  Bayenv uses different assumptions than rrBLUP, and therefore we want to stick to just rrBLUP.
-
->>>>>>> 734b6aa2fbd6492078fbcbeff73f551250c1a4db
 ```{r}
 # phenoteo <-read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/Teosinte_averages.csv",header=TRUE)
 # 
@@ -346,11 +332,7 @@ Head to the grindstone on this, thinking about relationship between significance
 accepted <- c(.053 , .078, .153, .291, .485, .657, .828, .918, .973, .990, .999)
 beta <- c(0)
 beta <- as.numeric(union(beta, seq(0.0001,0.001,0.0001)))
-<<<<<<< HEAD
-plot(accepted ~ beta, main="Proportion of Significant P-Values", xlab="B/SqRt(Va)", ylab="Proportion Significant",options(scipen=5),xlim=c(0,.001))
-=======
 plot(accepted ~ beta, main="Proportion of Significant P-Values under varying Beta", xlab="B/Va", ylab="Proportion Significant",options(scipen=5),xlim=c(0,.003))
->>>>>>> 734b6aa2fbd6492078fbcbeff73f551250c1a4db
 lines(beta, accepted, lwd=1.5)
 knobmb <- abs(-0.049495790/5431.778287163)
 abline(v=knobmb, col="red",lwd=1.5)
@@ -379,7 +361,6 @@ vasall <- c(5431.778287163,4.972794944,8727.985264731,2.2614178222,5.18658746447
 =======
 betas<- c(0.049495790,0.001419767,0.061480283,0.0004300344,0.00008894284,0.00001546521,0.0004516771,0.000002730368)
 vas <- c(5431.778287163,4.972794944,8727.985264731,2.2614178222,5.18658746447,0.00568202942,0.6025925993,0.000606835736)
->>>>>>> 734b6aa2fbd6492078fbcbeff73f551250c1a4db
 par(mfrow=c(3,1))
 barplot(log10(betas),main="beta")
 barplot(log10(vas),main="vas")
@@ -392,9 +373,6 @@ points(phenoorder$Altitude,phenoorder$CentCMB)
 abline(lm(phenoorder$CentCMB~phenoorder$Altitude),col="blue")
 lm(phenoorder$CentCMB~phenoorder$Altitude)
 ```
-
-With these sims, we see that we can pick up beta/Va of pretty low, which will be a solid sentence in the paper.  I assume we have to redo these things for the teosinte matrices once I build them.
-<<<<<<< HEAD
 
 This next chunk will run all of the TE's through jeremy's code.  My goal with this will be to run the TE's through, get a count of how many of the tests are significant, and then plot a distribution of B/Va values.
 
@@ -425,6 +403,7 @@ crap <- tmp2[,1:1189]
 row.names(crap) <- crap$uniqid
 crap
 gsz <- tmp2$X1C_GS
+crap$uniqid <- NULL
 crap2 <- crap * gsz
 #write.csv(crap2,"~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/tmp_fte_gz.csv")
 #write.csv(data,"~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/lecrap.csv")
@@ -434,8 +413,9 @@ gzfte <- merge(crap2,data, by.x="row.names",by.y="uniqid")
 
 #then go in and change the _ to . in the file.
 #RIMMA0626.2 to RIMMA0626.1
+```
 
-
+```{r}
 #HERE WE START WITH FINALIZED MATRICES
 gzfte <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/PhenotypeData/gzfte.csv")
 library("rrBLUP")
@@ -478,7 +458,7 @@ for(i in 5:1191){
   coefvar <- c(coefvar,sd(phenoorder[,i])/mean(phenoorder[,i]))
 }
 
-plot(phenoorder$RLX_wugaab_AC187472.46, phenoorder)
+plot(phenoorder$RLX_wugaab_AC187472.46, phenoorder$Altitude)
 
 range(phenoorder$RLX_wugaab_AC187472.46)
 
@@ -488,7 +468,7 @@ length(subset(coefvar,coefvar>1))
 par(mfrow=c(2,2))
 tmp <- c()
 nerms <- colnames(phenoorder)
-which()
+
 for(i in a){
   tmp <- nerms[i]
   print(tmp)
@@ -520,11 +500,4 @@ phenoorder$Tot
 #the NA's come because we have a TE that is present in the teo but not in the maize lines, check to see if i get all 0s in maize where we get the Nas
 
 #include an error in measurement term, basically reducing our ability to say heritability is 1 cuz we might not be able to measure super well
-
-#should be sqroot va (variance is a squared, beta is not, make it the same)
 ```
-
-
-
-=======
->>>>>>> 734b6aa2fbd6492078fbcbeff73f551250c1a4db

@@ -182,8 +182,8 @@ umm2 <- 0:1
 axis(2, at=umm, labels=gencomp,las=2)
 axis(1,at=umm2,labels=c("Largest","Smallest"))
 
-image(scaled.dna15,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of DNA Elements", col=topo.colors(50))
-gencomp <- round(100*colMeans(crap), digits = 2)
+image.plot(scaled.dna15,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of DNA Elements", col=topo.colors(50))
+#gencomp <- round(100*colMeans(crap), digits = 2)
 umm <- seq(0,1, length.out = 15)
 umm2 <- 0:1
 axis(2, at=umm, labels=gencomp,las=2)
@@ -231,20 +231,23 @@ gencomp <- craaap$gencomp
 craaap$gencomp <- NULL
 craaap2 <- as.matrix(t(craaap))
 
+#library(fields)
+#?par
+#par(mfrow=c(2,1))
 image(craaap2,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of RNA Elements", col=topo.colors(50))
 umm <- seq(0,1, length.out = 15)
 umm2 <- 0:1
 axis(2, at=umm, labels=gencomp,las=2)
 axis(1,at=umm2,labels=c("Largest","Smallest"))
 
-library(fields)
-
-image.plot(scaled.rna15,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of Retro Elements", col=topo.colors(50))
-gencomp <- round(100*colMeans(crap), digits = 2)
+image(scaled.rna15,xlab="Accessions by GS",yaxt='n',xaxt='n',main="Scaled Genomic MB of Retro Elements", col=topo.colors(50))
 umm <- seq(0,1, length.out = 15)
 umm2 <- 0:1
 axis(2, at=umm, labels=gencomp,las=2)
 axis(1,at=umm2,labels=c("Largest","Smallest"))
+```
+#gencomp <- round(100*colMeans(crap), digits = 2)
+
 ```
 
 

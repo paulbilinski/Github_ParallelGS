@@ -1,0 +1,72 @@
+---
+title: "ComparingGCModels"
+output: html_document
+---
+
+```{r}
+library(rjags)
+library(stringr)
+library(mcmcplots)
+setwd("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Grote_stats/Gridcomparison/")
+```
+
+```{r}
+fgrote<-read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Grote_stats/grote_Indexmoms_groundedLL_d16NA.csv")
+
+#make matrices with data to feed into JAGS
+stoma.positions <- str_detect(names(fgrote),"stom*")
+stoma <- fgrote[,names(fgrote)[stoma.positions]]
+stoma <- 0.0001 * stoma #convert mircons to centimeters
+leaflength.positions <- str_detect(names(fgrote), "leaf3diff*")#change this to leaf3diff*
+leaflength <- fgrote[,names(fgrote)[leaflength.positions]]
+n.cells <- apply(!is.na(stoma), MAR=1, FUN="sum")
+```
+
+Code for executing Model w/ Gaussian priors.
+
+```{r}
+DAGgaus.jags <- jags.model("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Grote_stats/Gridcomparison/DAG_twomediator_gaussian.txt", list(leaflength=log(leaflength),stoma=log(stoma),n.mothers=max(fgrote$momindex),n.indiv=dim(fgrote)[1],n.cells=n.cells,n.times=3,mother.index=fgrote$momindex,GS=log(fgrote$genomesize)),n.chains=2)
+
+update(DAGgaus.jags, n.iter=100000)
+
+DAGgaus.samples <- coda.samples(DAGgaus.jags, c("beta.GS","tao.GS","GS.contrast","sd.motherStCS","sd.motherLL","sd.indivCS","sd.indivLL","sd.StCS","sd.LL","U.StCS.coeffs","U.tao.LL","U.LE.coeffs"),n.iter=200000, thin=1600)
+
+mcmcplot(DAGgaus.samples)
+
+chain1<- as.matrix(DAGgaus.samples[[1]])
+chain2<- as.matrix(DAGgaus.samples[[2]])
+write.csv(chain1,"gaus.chain1.ind2.5mom0_sharecellsize.csv")
+write.csv(chain2,"gaus.chain2.ind2.5mom0_sharecellsize.csv")
+```
+
+Code for executing Model w/ gamma priors.
+
+```{r}
+DAGgamma.jags <- jags.model("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Grote_stats/Gridcomparison/DAG_twomediator_gamma.txt", list(leaflength=log(leaflength),stoma=log(stoma),n.mothers=max(fgrote$momindex),n.indiv=dim(fgrote)[1],n.cells=n.cells,n.times=3,mother.index=fgrote$momindex,GS=log(fgrote$genomesize)),n.chains=2)
+
+update(DAGgamma.jags, n.iter=100000)
+
+DAGgamma.samples <- coda.samples(DAGgamma.jags, c("beta.GS","tao.GS","GS.contrast","sd.motherStCS","sd.motherLL","sd.indivCS","sd.indivLL","sd.StCS","sd.LL","StCS.coeffs","tao.LL","LE.coeffs"),n.iter=100000, thin=800)
+
+mcmcplot(DAGgamma.samples)
+
+chain1<- as.matrix(DAGgamma.samples[[1]])
+chain2<- as.matrix(DAGgamma.samples[[2]])
+tmp <- as.data.frame(rbind(chain1,chain2))
+mean(tmp$GS.contrast)
+mean(tmp$tao.GS)
+mean(tmp$beta.GS)
+write.csv(chain1,"FINAL_3.6ll_.0032cellsizechain1.csv")
+write.csv(chain2,"FINAL_3.6ll_.0032cellsizechain2.csv")
+```
+
+
+```{r}
+setwd("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Grote_stats/Gridcomparison/")
+data<-mcmc(read.csv("gamma.chain1.ind4.8mom0_indcellsize.csv"),thin=800)
+data2<-mcmc(read.csv("gamma.chain2.ind4.8mom0_indcellsize.csv"),thin=800)
+samples <- mcmc.list(chain1=data,chain2=data2)
+
+
+mcmcplot(samples)
+```

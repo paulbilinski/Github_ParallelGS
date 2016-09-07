@@ -1,0 +1,89 @@
+---
+title: "Tasselsnpconversion"
+output: html_document
+---
+
+
+
+```{r}
+setwd("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Mexicana_conversion/")
+gbs<-read.table("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Mexicana_conversion/GBS_filteredfromtassel.txt", header=TRUE) #column names still not correct
+row.names(gbs)<-gbs$Taxa
+gbs$Taxa<- NULL
+gbs2<- t(gbs)
+gbs2<- gsub("G", "GG", gbs2)
+gbs2<- gsub("A", "AA", gbs2)
+gbs2<- gsub("C", "CC", gbs2)
+gbs2<- gsub("T", "TT", gbs2)
+gbs2<- gsub("Y", "CT", gbs2)
+gbs2<- gsub("R", "AG", gbs2)
+gbs2<- gsub("W", "AT", gbs2)
+gbs2<- gsub("S", "GC", gbs2)
+gbs2<- gsub("K", "TG", gbs2)
+gbs2<- gsub("M", "CA", gbs2)
+gbs2<- gsub("-", "NA", gbs2)
+gbs2<- gsub("N", "NA", gbs2)
+gbs2<- gsub("0", "NA", gbs2)
+gbs2<- gsub("NAA", "NA", gbs2)
+row.names(gbs2)<- NULL
+write.csv(gbs2, "GBS_forSNPconversion.txt")
+```
+
+Set for alt threshold files.
+
+```{r}
+gbs<-read.table("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Mexicana_conversion/GBS_alt_threshold_Tasselout.txt", header=TRUE) 
+row.names(gbs)<-gbs$Taxa
+gbs$Taxa<- NULL
+gbs2<- t(gbs)
+gbs2<- gsub("G", "GG", gbs2)
+gbs2<- gsub("A", "AA", gbs2)
+gbs2<- gsub("C", "CC", gbs2)
+gbs2<- gsub("T", "TT", gbs2)
+gbs2<- gsub("Y", "CT", gbs2)
+gbs2<- gsub("R", "AG", gbs2)
+gbs2<- gsub("W", "AT", gbs2)
+gbs2<- gsub("S", "GC", gbs2)
+gbs2<- gsub("K", "TG", gbs2)
+gbs2<- gsub("M", "CA", gbs2)
+gbs2<- gsub("-", "NA", gbs2)
+gbs2<- gsub("N", "NA", gbs2)
+gbs2<- gsub("0", "NA", gbs2)
+gbs2<- gsub("NAA", "NA", gbs2)
+row.names(gbs2)<- NULL
+write.csv(gbs2, "GBS_alt_threshold_2bpout.txt")
+```
+
+#Testing selection below, so SNP conversion ends above.
+
+```{r}
+#install.packages("emma")
+library ( emma )
+#install.packages("rrBLUP")
+library("rrBLUP")
+
+
+pheno <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Master_mexnucleo_pruned.csv") #phenotype data in matching order
+geno <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Mexicana_conversion/GBS_final.txt")
+geno$X <- NULL
+
+dt <- t(geno)
+
+A <- A.mat(dt)
+
+#create seperate matrices for each phenotype you want to model.
+gs <- t ( as.matrix ( pheno$GS_bp, ncol = 1 ) )
+gsgb <- gs/1000000000
+
+alt <- t ( as.matrix ( pheno$Altitude , ncol = 1 ) )
+alt <- alt - mean ( alt ) + 0.5
+#mean centering between 0 and 1
+
+A <- as.matrix ( A )
+#make sure your kinship matrix is a matrix.
+
+out.gsgb <- emma.REML.t ( gsgb , alt , K = A )
+out.gsgb
+
+
+```

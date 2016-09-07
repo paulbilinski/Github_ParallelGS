@@ -1,0 +1,32 @@
+model{
+#loop over mothers, define the mother random effects
+for ( m in 1:n.mothers) {
+z.mother[m] ~ dnorm( 0 , tau.mother ) # tau is a precision 1/variance
+}
+#loop over individuals, define the individual random effects
+for ( i in 1:n.indiv) {
+z.indiv[i] ~ dnorm( 0 , tau.indiv ) # same for individuals
+
+mu[i] <- mu.cell + z.indiv[i] + z.mother[mother.index[i]] 
+
+#loop over cells within individuals
+for ( c in 1:n.cells) {
+#model for mean cell size
+stoma[i,c] ~ dnorm( mu[i], tau.cell)
+#have to make sure to code the bulk seed as each with a different integer
+}
+}
+#Priors scheme for half-Cauchy priors for standard deviation
+sd.mother ~ dt(0, 1, 1) T(0,)
+sd.indiv ~ dt(0, 1, 1) T(0,)
+sd.cell ~ dt(0, 1, 1) T(0,)
+
+#deterministically call the tau based on the SD
+tau.mother <- 1/(sd.mother * sd.mother)
+tau.indiv <- 1/(sd.indiv * sd.indiv)
+tau.cell <- 1/(sd.cell * sd.cell)
+
+#Leaving the prior for grand mean cell size
+mu.cell ~ dnorm( 0 , 1e-4)
+
+}

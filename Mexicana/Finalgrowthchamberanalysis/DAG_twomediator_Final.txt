@@ -1,0 +1,64 @@
+model{
+#loop over mothers, define the mother random effects
+for ( m in 1:n.mothers) {
+	z.motherStCS[m] ~ dnorm( log(.003) , tau.motherStCS ) # tau is a precision 1/variance
+	z.motherLL[m] ~ dnorm( log(4.8) , tau.motherLL ) # tau is a precision 1/variance
+	z.motherLE[m] ~ dgamma(1,1) #dgamma(r,lambda) we want r/lambda = 1, variance = r/(lambda^2) = large but not huge
+}
+
+#loop over individuals, define the individual random effects, define model for GS on stomatal CS, StCS
+for ( i in 1:n.indiv) { #all of the individual effects are centered at the prior mean / intercept
+	z.indivCS[i] ~ dnorm( log(.003) , tau.indivCS ) # in centimeter scaling
+	z.indivLL[i] ~ dnorm( log(4.8) , tau.indivLL ) #in centimeter scaling
+	z.indivLE[i] ~ dgamma(1,1) #refer to mother LE for explanation of prior gamma distribution 
+	#dgamma(1,1) is mean centered at 1; dgamma(1,1) is mean centered at 1 (linear growth)
+	
+	StCS.coeffs[i] <- z.indivCS[i] + z.motherStCS[mother.index[i]] 
+	mu.StCS[i] <- StCS.coeffs[i] + beta.GS * GS[i]
+	#additive model for mean Stcell size, involving grand mean, individual effect, maternal effect, and regression on genome size
+
+	#loop over cells within individuals
+	for ( c in 1:n.cells[i]) {
+		#model for mean cell size
+		stoma[i,c] ~ dnorm( mu.StCS[i], tau.StCS)
+	}
+
+	tao.LL[i] <- z.indivLL[i] + z.motherLL[mother.index[i]]
+	#additive model for mean leaf length, involving only the non time dependent components
+		
+	LE.coeffs[i] <- z.indivLE[i] + z.motherLE[mother.index[i]]
+	#these are the coefficients of log t in the model (time because it is leaf elongation)
+		
+	#loop over time points for leaf length measurement within individuals
+	for ( t in 1:n.times) {
+		#model for leaf length in individual i at time t
+#		mu.LL.time[i,t] <- tao.LL[i] + ( Mu.LE + z.indivLE[i] + z.motherLE[mother.index[i]]) * log(t)
+		mu.LL.time[i,t] <- tao.LL[i]  + tao.GS * GS[i] + LE.coeffs[i] * log(t)
+		leaflength[i,t] ~ dnorm( mu.LL.time[i,t], tau.LL)
+	}
+}
+
+#Priors scheme for half-Cauchy priors for standard deviation
+#particular t distribution that is truncated below 0
+sd.motherStCS ~ dt(0, 1, 1) T(0,) #T(0,) truncates it at 0
+sd.motherLL ~ dt(0, 1, 1) T(0,)
+sd.indivCS ~ dt(0, 1, 1) T(0,) #individual level effect on cell sizes... compare to...
+sd.indivLL ~ dt(0, 1, 1) T(0,)
+sd.StCS ~ dt(0, 1, 1) T(0,) #error sd for replicates. so not the same as indivCS
+sd.LL ~ dt(0, 1, 1) T(0,) #error sd for replicates. so not the same as indivLL
+
+#deterministically call the tau based on the SD
+tau.motherStCS <- 1/(sd.motherStCS * sd.motherStCS)
+tau.motherLL <- 1/(sd.motherLL * sd.motherLL)
+tau.indivCS <- 1/(sd.indivCS * sd.indivCS)
+tau.indivLL <- 1/(sd.indivLL * sd.indivLL)
+tau.StCS <- 1/(sd.StCS * sd.StCS)
+tau.LL <- 1/(sd.LL * sd.LL)
+
+#Priors for coefficients
+beta.GS ~ dnorm( 0 , 0.04) #effect of GS on cell size, #diffuse gaussian prior centered at 0 # prior indifference especially to the sign and magnitude
+tao.GS ~ dnorm( 0 , 0.04) #effect of GS on LE
+
+#Calculated quantities to be tracked
+GS.contrast <- tao.GS - beta.GS
+}

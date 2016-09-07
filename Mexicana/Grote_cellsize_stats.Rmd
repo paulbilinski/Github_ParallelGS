@@ -1,0 +1,160 @@
+---
+title: "Grote_cellsize_stats"
+output: html_document
+---
+
+The plan with the stats is to now take all of the variance we have in the repeated measures for cell size and include that in the model.  We will build a wide form data set for only leave 3 measures.  This means we need to get the values for the adjacent cells, middle cells, and stomatal cells for leaf three into the data frame.  Take code from Cellsizes.rmd to isolate the measures for each leaf and each type.
+
+```{r}
+setwd("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/")
+#data <- read.csv("fixingmeasures-updated.csv",header=TRUE)
+data <- read.csv("Cellmeasures_editting/JUVmeasuresfinal_editted.csv",header=TRUE)
+#the column crap has the full ID's of the samples, but is not useful for parsing data.  it was split in textwrangler and new additional columns were added manually
+data$crap <-NULL #removing useless column ID
+leaf3<-subset(data,data$leaf==3)
+leaf3adj<-subset(leaf3,leaf3$pos=="adjacent")
+leaf3mid<-subset(leaf3,leaf3$pos=="middle")
+#Make the merging factor the rowname, and clean out any outlier
+row.names(leaf3adj) <- leaf3adj$fullid
+Fleaf3adj <- leaf3adj[,6:185]
+which(Fleaf3adj>400)
+which(Fleaf3adj<40)
+Fleaf3adj[Fleaf3adj>400]<- NA
+Fleaf3adj[Fleaf3adj<40]<- NA
+which(Fleaf3adj>400)
+which(Fleaf3adj<40)
+colnames(Fleaf3adj) <- paste("adj", colnames(Fleaf3adj),sep="_")
+Fleaf3adj$fullid <- row.names(Fleaf3adj)
+#repeat for mid, but mid has far fewer measures so maybe just exclude altogether?
+row.names(leaf3mid) <- leaf3mid$fullid
+Fleaf3mid <- leaf3mid[,6:60]
+which(Fleaf3mid>400)
+which(Fleaf3mid<40)
+Fleaf3mid[Fleaf3mid>400]<- NA
+Fleaf3mid[Fleaf3mid<40]<- NA
+which(Fleaf3mid>400)
+which(Fleaf3mid<40)
+colnames(Fleaf3mid) <- paste("mid", colnames(Fleaf3mid),sep="_")
+Fleaf3mid$fullid <- row.names(Fleaf3mid)
+```
+
+The middle and adjacent row values are stored in Fleaf3mid and Fleaf3adj. Now get the stomatal measures from the other data spreadsheet.
+
+```{r}
+stoma<-read.csv("stomatameasures.csv")
+stomalf3<- subset(stoma,stoma$leafnumber==3)
+row.names(stomalf3) <- stomalf3$fullid
+Fleaf3stom <- stomalf3[,5:65]
+which(Fleaf3stom>60)
+which(Fleaf3stom<5)
+Fleaf3stom[Fleaf3stom>60]<- NA #remove outliers
+Fleaf3stom[Fleaf3stom<5]<- NA
+which(Fleaf3stom>60)
+which(Fleaf3stom<5)
+colnames(Fleaf3stom) <- paste("stom", colnames(Fleaf3stom),sep="_")
+Fleaf3stom$fullid <- row.names(Fleaf3stom)
+```
+
+Fleaf3stom is the wide form for stomatal measures from leaf 3.  Now we have to merge all 3 final measures with the cell production data set. The rownames should be the merging factor.
+
+```{r}
+cellprod <- read.csv("CellProduction_All_crap.csv") #This is the dataset with all the phenotypes, the crap at the end designates that we have to remove a lot of NA rows.
+cellprod <- cellprod[1:202,1:16]
+grote <- Reduce(function(x, y) merge(x, y, by="fullid"), list(cellprod, Fleaf3stom, Fleaf3mid, Fleaf3adj))
+#write.csv(grote,"Grote_dataset.csv")
+```
+
+Session with Mark 4/21/16
+
+```{r}
+#install.packages("rjags")
+library(rjags) #make sure to get this working
+#install.packages("stringr")
+library(stringr)
+?str_detect
+stoma.positions <- str_detect(names(grote),"stom*") # this fetches the names of the columns with stom in it
+stoma <- grote[,names(grote)[stoma.positions]]
+gensize.conforming <- matrix(grote$genomesize,nrow=nrow(stoma),ncol=ncol(stoma),byrow=FALSE)
+plot(log(as.vector(gensize.conforming)), log(as.vector(as.matrix(stoma))),pch=".",cex=2,xlab="Log Genome Size",ylab="Log Stomatal Cell Size",bty="n") #alternatively we can make new grote table
+#lines(smooth.spline(log(as.vector(gensize.conforming)), log(as.vector(as.matrix(stoma))),spar=1.0)) #fix NA's and the smoothspline will work, to show non parametric
+
+is.data.frame(gensize.conforming)
+is.data.frame(stoma)
+adj.positions <- str_detect(names(grote),"adj*")
+```
+
+New chunk for model running, starting with the simplest with no predictors.
+
+```{r}
+#start by writing proper column for mom indexes, taking care of bulks to be different moms
+#write.csv(grote,"~/Desktop/grote_Indexmoms.csv")
+fgrote<-read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Grote_stats/grote_Indexmoms.csv")
+library(rjags) #make sure to get this working
+library(stringr)
+stoma.positions <- str_detect(names(fgrote),"stom*") # this fetches the names of the columns with stom in it
+stoma <- fgrote[,names(fgrote)[stoma.positions]]
+leaflength.positions <- str_detect(names(fgrote), "leaf3.*")
+leaflength <- fgrote[,names(fgrote)[leaflength.positions]]
+#multiply this by the conversion to microns ??100K
+
+#gensize.conforming <- matrix(grote$genomesize,nrow=nrow(stoma),ncol=ncol(stoma),byrow=FALSE)
+gensize.conforming <- matrix(log(grote$genomesize),nrow=nrow(stoma),ncol=ncol(stoma),byrow=FALSE)
+
+
+m0.jags <- jags.model("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Grote_stats/grote_imputemodel.txt", list(stoma=log(stoma),n.mothers=max(fgrote$momindex),n.indiv=dim(fgrote)[1],n.cells=dim(stoma)[2],mother.index=fgrote$momindex),n.chains=2)
+#in order to not do log, remove log of stoma and log of grote$genomesize
+update(m0.jags, n.iter=10000) #this is the burn in step, explore full space, start "randomly" then ideally get to sweet spot for further explore and store data there
+#Mixing: exploring all of the local maxima of high posterior probability
+m0.samples <- coda.samples(m0.jags, c("sd.mother","sd.indiv","sd.cell","mu.cell"),n.iter=10000, thin=100) # Grote: 2 chains is plenty, so more iterations is better, dont need more chains, sweet spot is a region of high posterior probability
+```
+
+For visualizing the outputs of the model and gibbs sampling diagnostics, install mcmcplot.
+
+```{r}
+#install.packages("mcmcplots")
+library(mcmcplots)
+mcmcplot(m0.samples)
+m0.samples[[1]]
+chain1<- as.matrix(m0.samples[[1]])
+chain2<- as.matrix(m0.samples[[2]])
+```
+
+m1 is a model for the DAG of GS, and StCS, pg 4 April 8th, 2016
+
+    ^----------------------------l
+Maternal.r.eff > genome.size > stoma.cs
+                                  ^
+                          Individual.r.eff
+
+```{r}
+m1.jags <- jags.model("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Grote_stats/grote_DAG_forGS.txt", list(stoma=log(stoma),n.mothers=max(fgrote$momindex),n.indiv=dim(fgrote)[1],n.cells=dim(stoma)[2],mother.index=fgrote$momindex,GS=log(fgrote$genomesize)),n.chains=2)
+#in order to not do log, remove log of stoma and log of grote$genomesize
+update(m1.jags, n.iter=1000000) #this is the burn in step, explore full space, start "randomly" then ideally get to sweet spot for further explore and store data there
+#Mixing: exploring all of the local maxima of high posterior probability
+m1.samples <- coda.samples(m1.jags, c("sd.motherStCS","sd.motherGS","sd.GS","sd.indiv","sd.StCS","Mu.StCS","Mu.GS","b.GS"),n.iter=1000000, thin=10000) # Grote: 2 chains is plenty, so more iterations is better, dont need more chains, sweet spot is a region of high posterior probability
+mcmcplot(m1.samples)
+chain1<- as.matrix(m1.samples[[1]])
+chain2<- as.matrix(m1.samples[[2]])
+write.csv(chain1,"~/Desktop/m1.jags.1mil.chain1.csv")
+write.csv(chain2,"~/Desktop/m1.jags.1mil.chain2.csv")
+```
+#reflection invariance, parameter identification
+#the model is on your notability on phone.
+#500 to 2000 is the range of retained posterior samples, for posterior analysis.
+
+#model of marginal dependence of the 2 kinds of cell sizes but conditional independence
+
+#log of stoma instead of stoma into this
+
+May 6th; putting together the DAG for LL and leaf elongation
+
+```{r}
+m2.jags <- jags.model("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Grote_stats/grote_DAG_leafelong.txt", list(leaflength=log(leaflength),stoma=log(stoma),n.mothers=max(fgrote$momindex),n.indiv=dim(fgrote)[1],n.cells=dim(stoma)[2],n.times=4,mother.index=fgrote$momindex,GS=log(fgrote$genomesize)),n.chains=2)
+#in order to not do log, remove log of stoma and log of grote$genomesize
+update(m2.jags, n.iter=100000) #this is the burn in step, explore full space, start "randomly" then ideally get to sweet spot for further explore and store data there
+#Mixing: exploring all of the local maxima of high posterior probability
+m1.samples <- coda.samples(m1.jags, c("sd.motherStCS","sd.motherGS","sd.GS","sd.indiv","sd.StCS","Mu.StCS","Mu.GS","b.GS"),n.iter=1000000, thin=10000) # Grote: 2 chains is plenty, so more iterations is better, dont need more chains, sweet spot is a region of high posterior probability
+mcmcplot(m1.samples)
+```
+
+

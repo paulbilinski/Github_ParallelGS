@@ -1,0 +1,96 @@
+model{
+#loop over mothers, define the mother random effects
+for ( m in 1:n.mothers) {
+	z.motherStCS[m] ~ dnorm( 0 , tau.motherStCS ) # tau is a precision 1/variance
+	#z.motherGS[m] ~ dnorm( log(6) , tau.motherGS ) #cutting out mom GS effect, so that GS is just observed
+	z.motherLL[m] ~ dnorm( 0 , tau.motherLL ) # tau is a precision 1/variance
+	z.motherLE[m] ~ dnorm( 0 , tau.motherLE ) # tau is a precision 1/variance
+	#mother random effects for stomatal cell size and genome size respectively
+}
+
+#loop over individuals, define the individual random effects, define model for GS on stomatal CS, StCS
+for ( i in 1:n.indiv) { #all of the individual effects are centered at the prior mean / intercept
+	z.indivCS[i] ~ dnorm( log(.003) , tau.indivCS ) # in centimeter scaling
+	z.indivLL[i] ~ dnorm( log(5) , tau.indivLL ) #in centimeter scaling
+	z.indivLE[i] ~ dnorm( 1 , tau.indivLE ) #includes the grand mean leaf elongation
+	
+	#mu.GS[i] <- z.motherGS[mother.index[i]] #Predicted genome size for individual i, mean falls into mother effect
+
+	#GS[i] ~ dnorm( mu.GS[i], tau.GS )
+	#defines the distribution for the observed GS
+
+	StCS.coeffs[i] <- z.indivCS[i] + z.motherStCS[mother.index[i]] 
+	mu.StCS[i] <- StCS.coeffs[i] + beta.GS * GS[i]
+	#additive model for mean Stcell size, involving grand mean, individual effect, maternal effect, and regression on genome size
+
+	#loop over cells within individuals
+	for ( c in 1:n.cells[i]) {
+		#model for mean cell size
+		stoma[i,c] ~ dnorm( mu.StCS[i], tau.StCS)
+	}
+
+	tao.LL[i] <- z.indivLL[i] + z.motherLL[mother.index[i]]
+	#additive model for mean leaf length, involving only the non time dependent components
+		
+	LE.coeffs[i] <- z.indivLE[i] + z.motherLE[mother.index[i]]
+	#these are the coefficients of log t in the model (time because it is leaf elongation)
+		
+	#loop over time points for leaf length measurement within individuals
+	for ( t in 1:n.times) {
+		#model for leaf length in individual i at time t
+#		mu.LL.time[i,t] <- tao.LL[i] + ( Mu.LE + z.indivLE[i] + z.motherLE[mother.index[i]]) * log(t)
+		mu.LL.time[i,t] <- tao.LL[i]  + tao.GS * GS[i] + LE.coeffs[i] * log(t)
+		leaflength[i,t] ~ dnorm( mu.LL.time[i,t], tau.LL)
+	}
+}
+
+#Priors scheme for half-Cauchy priors for standard deviation
+sd.motherStCS ~ dt(0, 1, 1) T(0,)
+sd.motherGS ~ dt(0, 1, 1) T(0,)
+sd.motherLL ~ dt(0, 1, 1) T(0,)
+sd.motherLE ~ dt(0, 1, 1) T(0,)
+#sd.GS ~ dt(0, 1, 1) T(0,)
+sd.indivCS ~ dt(0, 1, 1) T(0,) #individual level effect on cell sizes... compare to...
+sd.indivLL ~ dt(0, 1, 1) T(0,)
+sd.indivLE ~ dt(0, 1, 1) T(0,)
+sd.StCS ~ dt(0, 1, 1) T(0,) #error sd for replicates. so not the same as indivCS
+sd.LL ~ dt(0, 1, 1) T(0,) #error sd for replicates. so not the same as indivLL
+
+#deterministically call the tau based on the SD
+tau.motherStCS <- 1/(sd.motherStCS * sd.motherStCS)
+tau.motherGS <- 1/(sd.motherGS * sd.motherGS)
+tau.motherLL <- 1/(sd.motherLL * sd.motherLL)
+tau.motherLE <- 1/(sd.motherLE * sd.motherLE)
+#tau.GS <- 1/(sd.GS * sd.GS)
+tau.indivCS <- 1/(sd.indivCS * sd.indivCS)
+tau.indivLL <- 1/(sd.indivLL * sd.indivLL)
+tau.indivLE <- 1/(sd.indivLE * sd.indivLE)
+tau.StCS <- 1/(sd.StCS * sd.StCS)
+tau.LL <- 1/(sd.LL * sd.LL)
+
+#Leaving the prior for grand mean cell size, and grand mean genome size
+#Mu.StCS ~ dnorm( 0 , 1)#deleted, incorporated into individual term
+#Mu.GS ~ dnorm(0 , 0.04)#deleted, incorporated into mother term
+#Mu.LL ~ dnorm(log(3.5), 1)#
+#Mu.LE ~ dnorm(1, 0.04) #prior at 1 because we expect linear growth, tracker will show this
+#No priors for any of these terms, as they are rolled into individual or mother effects
+#for reasons of model identification, we have placed informative priors on the individual level or mother level random effects as appropriate
+
+#Priors for coefficients
+beta.GS ~ dnorm( 0 , 0.04) #effect of GS on cell size
+tao.GS ~ dnorm( 0 , 0.04) #effect of GS on LE
+
+#Calculated quantities to be tracked
+GS.contrast <- tao.GS - beta.GS
+#U.z.motherGS <- mean(z.motherGS)
+U.z.indivCS <- mean(z.indivCS)
+U.z.indivLL <- mean(z.indivLL)
+U.z.indivLE <- mean(z.indivLE)
+#NEED TRACKERS
+U.z.motherLL <- mean(z.motherLL)
+U.z.motherLE <- mean(z.motherLE)
+U.z.motherStCS <- mean(z.motherStCS)
+U.tao.LL <- mean(tao.LL)
+U.LE.coeffs <- mean(LE.coeffs)
+U.StCS.coeffs <- mean(StCS.coeffs)
+}

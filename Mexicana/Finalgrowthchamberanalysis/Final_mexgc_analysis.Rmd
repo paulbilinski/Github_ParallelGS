@@ -1,0 +1,252 @@
+---
+title: "Final_Grote_growthchamber"
+output: html_document
+---
+
+Identifying effect sizes in the two mediator model of genome size and leaf elongation.
+
+Step1: Load in data and execute JAGS model to generate posterior distributions of components.
+Step2: Use posterior distributions to generate figures to show confidence intervals on real data in the unit of measure.
+
+```{r}
+library(rjags)
+library(stringr)
+library(mcmcplots)
+setwd("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Finalgrowthchamberanalysis/")
+```
+
+Load in data sets, build data frames necessary for JAGS input.
+
+```{r}
+#Master Data frame with all measures is called fgrote, for final grote dataframe.
+fgrote<-read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Finalgrowthchamberanalysis/grote_Indexmoms_groundedLL_d16NA.csv")
+
+#Make the necessary dataframe inputs into the model
+stoma.positions <- str_detect(names(fgrote),"stom*")
+stoma <- fgrote[,names(fgrote)[stoma.positions]]
+stoma <- 0.0001 * stoma #convert mircons to centimeters
+leaflength.positions <- str_detect(names(fgrote), "leaf3diff*")#change this to leaf3diff*
+leaflength <- fgrote[,names(fgrote)[leaflength.positions]]
+n.cells <- apply(!is.na(stoma), MAR=1, FUN="sum")
+
+#data frames needed for figure generation
+gensize.conforming <- matrix(fgrote$genomesize,nrow=nrow(fgrote),ncol=3,byrow=FALSE)
+fgrote$leaf3diff10 <- fgrote$leaf3.1 - fgrote$leaf3.0
+fgrote$leaf3diff21 <- fgrote$leaf3.2 - fgrote$leaf3.1
+fgrote$leaf3diff32 <- fgrote$leaf3.3 - fgrote$leaf3.2
+LEdiffs <- as.matrix(cbind(fgrote$leaf3diff10,fgrote$leaf3diff21,fgrote$leaf3diff32))
+#emperical derivates, change per day, necessary for figures
+```
+
+Read in, burn in, and execute the model.  This segment will take time, depending on how many iterations you want to calculate and store.
+
+```{r}
+DAGLL.jags <- jags.model("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Finalgrowthchamberanalysis/DAG_twomediator_Final.txt", list(leaflength=log(leaflength),stoma=log(stoma),n.mothers=max(fgrote$momindex),n.indiv=dim(fgrote)[1],n.cells=n.cells,n.times=3,mother.index=fgrote$momindex,GS=log(fgrote$genomesize)),n.chains=2)
+
+update(DAGLL.jags, n.iter=200000)
+
+DAGLL.samples <- coda.samples(DAGLL.jags, c("beta.GS","tao.GS","GS.contrast","sd.motherStCS","sd.motherLL","sd.indivCS","sd.indivLL","sd.StCS","sd.LL","StCS.coeffs","tao.LL","LE.coeffs"),n.iter=500000, thin=500)
+
+mcmcplot(DAGLL.samples)
+```
+
+Save chains, chunk not to be executed each time.
+
+```{r}
+chain1<- as.matrix(DAGLL.samples[[1]])
+chain2<- as.matrix(DAGLL.samples[[2]])
+write.csv(chain1,"DAGLLfinal.jags.le.6_003_4.8.chain1.csv")
+write.csv(chain2,"DAGLLfinal.jags.le.6_003_4.8.chain2.csv")
+```
+
+Plot genome size by leaf elongation.
+
+```{r}
+#placeholder
+fgrote<-read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Finalgrowthchamberanalysis/grote_Indexmoms_groundedLL_d16NA.csv")
+tmp1<- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Grote_stats/Gridcomparison/gamma.chain2.ind4.8mom0_indcellsize.csv")
+tmp2<- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Grote_stats/Gridcomparison/gamma.chain1.ind4.8mom0_indcellsize.csv")
+tmp1 <- mcmc(tmp1,thin=500)
+tmp2 <- mcmc(tmp2,thin=500)
+#samples2 <- mcmc.list(chain1=tmp1,chain2=tmp2)
+samples<-rbind(tmp1,tmp2)
+
+colnames(samples)
+
+#plot(samples.mat[,"tao.GS"],samples.mat[,"LE.coeffs.143."])
+
+
+#Set up plotting boundaries of the graph
+loggs.seq <- seq(from=min(log(fgrote$genomesize)),to=max(log(fgrote$genomesize)), by=0.001)
+
+loggs.mat <- cbind(rep(1,length(loggs.seq)),rep(1,length(loggs.seq)), loggs.seq) #matrix with 3 columns, first 2 columns are =1 to pick up individual random effect for leaf length and leaf elongation, and the third is a sequence for the axis of log genome size
+
+gs.params <- samples[,c("U.z.indivLL","tao.GS")]
+gs.params <- cbind(log(samples$U.z.indivLE),gs.params)#collect the realizations (intercepts) that correspond to the effect being displayed
+coef.means <- apply(gs.params, MAR=2, FUN="mean") #take the posterior mean for the central tendency curve
+
+#gs.params needs to have columns for each of the realization terms, might include average(z.indivll+z.momll) or might have other terms.  need to add in a rep(1,length(loggs.seq) for each additional terms
+
+predmean <- exp(loggs.mat %*% coef.means) #matrix math for the central tendency curve
+
+#making of the credibility bands
+
+allpreds <- as.matrix(gs.params) %*% t(loggs.mat) #evaluate the linear predictor for every realization
+allpreds <- exp(allpreds) 
+#dim(allpreds)
+preds.upper <- apply(allpreds,MAR=2,FUN="quantile",probs=c(0.975)) #upper bounds of our predictor
+preds.lower <- apply(allpreds,MAR=2,FUN="quantile",probs=c(0.025))
+
+ymin <- min(c(predmean,preds.upper,preds.lower,LEdiffs),na.rm=TRUE)
+ymax <- max(c(predmean,preds.upper,preds.lower,LEdiffs),na.rm=TRUE)
+
+plot(as.vector(gensize.conforming), as.vector(LEdiffs),pch=21,cex=0.8,bg="grey80",xlab="Genome Size (pg)",ylab="Leaf Elongation (cm/day)",bty="n",type="n", ylim=c(ymin,ymax))
+
+n.polygons <- length(loggs.seq)-1
+for(polygon in 1:n.polygons){
+  polygon(
+    x=exp(c(loggs.seq[polygon],loggs.seq[polygon],loggs.seq[polygon+1],loggs.seq[polygon+1])), 
+    y=c(preds.lower[polygon],preds.upper[polygon],preds.upper[polygon+1],preds.lower[polygon+1]),
+    col="gray85",border=NA)
+}
+
+lines(exp(loggs.seq),predmean) # zero effect of genome size on leaf elongation
+points(as.vector(gensize.conforming), as.vector(LEdiffs),pch=21,cex=0.8,bg="grey80")
+```
+
+7-10-16 playing around with plotting realizations onto the fig4 graphs
+
+```{r}
+fgrote<-read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Finalgrowthchamberanalysis/grote_Indexmoms_groundedLL_d16NA.csv")
+tmp1<- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Grote_stats/Gridcomparison/gamma.chain2.ind4.8mom0_indcellsize.csv")
+tmp2<- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Grote_stats/Gridcomparison/gamma.chain1.ind4.8mom0_indcellsize.csv")
+tmp1 <- mcmc(tmp1,thin=500)
+tmp2 <- mcmc(tmp2,thin=500)
+#samples2 <- mcmc.list(chain1=tmp1,chain2=tmp2)
+samples<-rbind(tmp1,tmp2)
+
+colnames(samples)
+
+#plot(samples.mat[,"tao.GS"],samples.mat[,"LE.coeffs.143."])
+
+
+#Set up plotting boundaries of the graph
+loggs.seq <- seq(from=min(log(fgrote$genomesize)),to=max(log(fgrote$genomesize)), by=0.001)
+
+loggs.mat <- cbind(rep(1,length(loggs.seq)),rep(1,length(loggs.seq)), loggs.seq) #matrix with 3 columns, first 2 columns are =1 to pick up total (sum of individual and maternal or z_ll,i and z_ll,mom(i)) random effect for leaf length and leaf elongation, and the third is a sequence for the axis of log genome size
+
+taoll.positions <- str_detect(colnames(samples),"tao.LL*")
+taoll <- samples[,colnames(samples)[taoll.positions]]
+
+lecoef.positions <- str_detect(colnames(samples),"LE.coeffs*")
+lecoef <- samples[,colnames(samples)[lecoef.positions]]
+
+#placeholder
+
+all.curves <- 
+
+sample.mean <- ()
+
+predmean <- exp(loggs.mat %*% coef.means) #matrix math for the central tendency curve
+
+
+leaflength.positions <- str_detect(names(fgrote), "leaf3diff*")#change this to leaf3diff*
+leaflength <- fgrote[,names(fgrote)[leaflength.positions]]
+
+#data frames needed for figure generation
+gensize.conforming <- matrix(fgrote$genomesize,nrow=nrow(fgrote),ncol=3,byrow=FALSE)
+fgrote$leaf3diff10 <- fgrote$leaf3.1 - fgrote$leaf3.0
+fgrote$leaf3diff21 <- fgrote$leaf3.2 - fgrote$leaf3.1
+fgrote$leaf3diff32 <- fgrote$leaf3.3 - fgrote$leaf3.2
+LEdiffs <- as.matrix(cbind(fgrote$leaf3diff10,fgrote$leaf3diff21,fgrote$leaf3diff32))
+
+
+gs.params <- samples[,c("U.z.indivLL","tao.GS")]
+gs.params <- cbind(log(samples$U.z.indivLE),gs.params)#collect the realizations (intercepts) that correspond to the effect being displayed
+coef.means <- apply(gs.params, MAR=2, FUN="mean") #take the posterior mean for the central tendency curve
+
+#gs.params needs to have columns for each of the realization terms, might include average(z.indivll+z.momll) or might have other terms.  need to add in a rep(1,length(loggs.seq) for each additional terms
+
+predmean <- exp(loggs.mat %*% coef.means) #matrix math for the central tendency curve
+
+#making of the credibility bands
+
+allpreds <- as.matrix(gs.params) %*% t(loggs.mat) #evaluate the linear predictor for every realization
+allpreds <- exp(allpreds) 
+#dim(allpreds)
+preds.upper <- apply(allpreds,MAR=2,FUN="quantile",probs=c(0.975)) #upper bounds of our predictor
+preds.lower <- apply(allpreds,MAR=2,FUN="quantile",probs=c(0.025))
+
+ymin <- min(c(predmean,preds.upper,preds.lower,LEdiffs),na.rm=TRUE)
+ymax <- max(c(predmean,preds.upper,preds.lower,LEdiffs),na.rm=TRUE)
+
+plot(as.vector(gensize.conforming), as.vector(LEdiffs),pch=21,cex=0.8,bg="grey80",xlab="Genome Size (pg)",ylab="Leaf Elongation (cm/day)",bty="n",type="n", ylim=c(ymin,ymax))
+
+n.polygons <- length(loggs.seq)-1
+for(polygon in 1:n.polygons){
+  polygon(
+    x=exp(c(loggs.seq[polygon],loggs.seq[polygon],loggs.seq[polygon+1],loggs.seq[polygon+1])), 
+    y=c(preds.lower[polygon],preds.upper[polygon],preds.upper[polygon+1],preds.lower[polygon+1]),
+    col="gray85",border=NA)
+}
+
+lines(exp(loggs.seq),predmean) # zero effect of genome size on leaf elongation
+points(as.vector(gensize.conforming), as.vector(LEdiffs),pch=21,cex=0.8,bg="grey80")
+```
+
+
+Genome size by stomatal cell size.  
+
+```{r}
+stoma.positions <- str_detect(names(fgrote),"stom*")
+stoma <- fgrote[,names(fgrote)[stoma.positions]]
+stoma <- 0.0001 * stoma #convert mircons to centimeters
+
+gensize.conforming <- matrix(fgrote$genomesize,nrow=nrow(fgrote),ncol=61,byrow=FALSE) #61 columns for the total number of measures of stoma
+
+
+loggs.seq <- seq(from=min(log(fgrote$genomesize)),to=max(log(fgrote$genomesize)), by=0.001)
+
+loggs.mat <- cbind(rep(1,length(loggs.seq)), loggs.seq) #DESIGN matrix with 3 columns, first 2 columns are =1 to pick up individual random effect for leaf length and leaf elongation, and the third is a sequence for the axis of log genome size
+
+cs.params <- samples[,c("U.z.indivCS","beta.GS")] #PARAMETER matrix
+coef.means <- apply(cs.params, MAR=2, FUN="mean") #take the posterior mean for the central tendency curve
+
+predmean <- exp(loggs.mat %*% coef.means) #matrix math for the central tendency curve
+
+allpreds <- as.matrix(cs.params) %*% t(loggs.mat) #evaluate the linear predictor for every realization
+allpreds <- exp(allpreds) 
+#dim(allpreds)
+preds.upper <- apply(allpreds,MAR=2,FUN="quantile",probs=c(0.975)) #upper bounds of our predictor
+preds.lower <- apply(allpreds,MAR=2,FUN="quantile",probs=c(0.025))
+
+ymin <- min(c(predmean,preds.upper,preds.lower,as.matrix(stoma)),na.rm=TRUE)
+ymax <- max(c(predmean,preds.upper,preds.lower,as.matrix(stoma)),na.rm=TRUE)
+
+
+plot(as.vector(gensize.conforming), as.vector(as.matrix(stoma)),pch=".",cex=2,xlab="Genome Size (pg)",ylab="Stomatal Cell Size (cm)",bty="n",type="n")
+
+n.polygons <- length(loggs.seq)-1
+for(polygon in 1:n.polygons){
+  polygon(
+    x=exp(c(loggs.seq[polygon],loggs.seq[polygon],loggs.seq[polygon+1],loggs.seq[polygon+1])), 
+    y=c(preds.lower[polygon],preds.upper[polygon],preds.upper[polygon+1],preds.lower[polygon+1]),
+    col="gray85",border=NA)
+}
+
+lines(exp(loggs.seq),predmean) # zero effect of genome size on leaf elongation
+points(as.vector(gensize.conforming), as.vector(as.matrix(stoma)),pch=".",cex=2,bg="grey80")
+```
+
+LME4 was abandoned as it could not simultaneously estimate the many components of this model.  Still to do is the inclusion of more error terms to widen the confidence bands.
+
+?dgamma
+
+x <- (0:100 + 0.01) / 50
+
+plot(x,dgamma(x,shape=1, scale=1/1),type="l")
+lines(x,dgamma(x,shape=5, scale=1/5),col="red")
+mean(rgamma(10000,shape=1, scale=1/1))
+
+
+
