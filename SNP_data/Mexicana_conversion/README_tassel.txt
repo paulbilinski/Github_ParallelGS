@@ -54,6 +54,13 @@ And the cleaned up, no header file is:
 
 	GBS_alt_threshold_2bp_noheader.txt
 
+<<<<<<< HEAD
+Now remove leading characters using perl, and then convert to 0 and 1 and -1, and remove the final , with textwrangler.
+
+	perl Removeleadingchars.pl GBS_alt_threshold_2bp_noheader.txt > GBS_alt_threshold_2bp_nolead.txt
+	perl ConvertSNP2.pl
+=======
 Now remove leading characters using perl, and then convert to 0 and 1 and -1.
 
 	perl Removeleadingchars.pl GBS_alt_threshold_2bp_noheader.txt > GBS_alt_threshold_2bp_nolead.txt
+>>>>>>> 9418a0eb3035598edffcb06d5c38aa669b8c3859

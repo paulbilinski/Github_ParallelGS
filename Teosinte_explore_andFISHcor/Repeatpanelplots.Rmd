@@ -52,6 +52,13 @@ p2<-ggplot(phenoorder, aes(Altitude, X180knobbp,color=Group),) + geom_point()+ y
 
 p3<-ggplot(phenoorder, aes(Altitude, TotallTebp,color=Group),) + geom_point()+ ylab("Total TE content (bp)") +geom_smooth(aes(group=Species),method="lm",color="black",linetype="dashed")+guides(color=FALSE)+xlab("Altitude (m)")#+ ggtitle("Landrace Genome Size")
 
+p1<-ggplot(phenoorder, aes(Altitude, X2c,color=Group),) + geom_point()+ ylab("2C Genome Size (pg)") +geom_smooth(method="lm",se = FALSE)+guides(color=FALSE) +xlab("Altitude (m)")#ggtitle("Genome Size")
+
+p2<-ggplot(phenoorder, aes(Altitude, X180knobbp,color=Group),) + geom_point()+ ylab("180bp Knob (bp)") +geom_smooth(method="lm",linetype="dashed",se = FALSE)+guides(color=FALSE)+xlab("Altitude (m)")#+ ggtitle("Genome Size")
+
+p3<-ggplot(phenoorder, aes(Altitude, TotallTebp,color=Group),) + geom_point()+ ylab("Total TE content (bp)") +geom_smooth(method="lm",linetype="dashed")+guides(color=FALSE)+xlab("Altitude (m)")#+ ggtitle("Landrace Genome Size")
+
+
 grid.arrange(p1,p2,p3,p4,p5,p6,ncol=3)
 
 ```

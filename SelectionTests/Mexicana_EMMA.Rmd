@@ -11,6 +11,11 @@ library ( emma )
 #install.packages("rrBLUP")
 library("rrBLUP")
 
+<<<<<<< HEAD
+source("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SelectionTests/jri_emma_returnbeta.txt")
+
+=======
+>>>>>>> 9418a0eb3035598edffcb06d5c38aa669b8c3859
 pheno <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/Mexicana/Master_mexnucleo_pruned.csv") #phenotype data in matching order
 geno <- read.csv("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Mexicana_conversion/GBS_final.txt")
 geno$X <- NULL
@@ -33,8 +38,56 @@ alt <- alt - mean ( alt ) + 0.5
 A <- as.matrix ( A )
 #make sure your kinship matrix is a matrix.
 
+<<<<<<< HEAD
+out.gsgb <- emma.REML.t_beta ( gsgb , alt , K = A )
+out.gsgb
+
+gs <- t ( as.matrix ( pheno$X180knobbp, ncol = 1 ) )
+gsgb <- gs/1000000000
+
+out.gsgb <- emma.REML.t_beta ( gsgb , alt , K = A )
+out.gsgb
+
+gs <- t ( as.matrix ( pheno$TR1bp, ncol = 1 ) )
+gsgb <- gs/1000000000
+
+out.gsgb <- emma.REML.t_beta ( gsgb , alt , K = A )
+out.gsgb
+
+gs <- t ( as.matrix ( pheno$TotalTebp, ncol = 1 ) )
+gsgb <- gs/1000000000
+
+out.gsgb <- emma.REML.t_beta ( gsgb , alt , K = A )
+out.gsgb
+
+
+```
+
+Include per individual inbreeding as a covariate, see if altitude term is then significant in regard to genome size.  
+```{r}
+hets<-read.csv("~/Desktop/teosinte_diversity/dothet.csv")
+inbr <- t ( as.matrix ( hets$F , ncol = 1 ) )
+
+fin.gsinbr <- emma.REML.t ( gsgb , alt , X0 =  cbind ( rep ( 1 , 93 ) , c ( inbr ) ) , K = A )
+fin.gsinbr
+```
+
+
+
+
+Checking for knob patterns in low elevation mexicana
+```{r}
+par(mfrow=c(2,2))
+plot(pheno$Altitude,pheno$X180knobbp,xlab="Altitude (m)",ylab="BP 180 knob")
+plot(pheno$Altitude,pheno$X180knob.,xlab="Altitude (m)",ylab="% 180 knob")
+
+plot(pheno$Altitude,pheno$TR1bp,xlab="Altitude (m)",ylab="BP TR1 knob")
+plot(pheno$Altitude,pheno$TR1.,xlab="Altitude (m)",ylab="% TR1 knob")
+
+=======
 out.gsgb <- emma.REML.t ( gsgb , alt , K = A )
 out.gsgb
+>>>>>>> 9418a0eb3035598edffcb06d5c38aa669b8c3859
 ```
 
 Alternate hypothesis.  Data cleaved at the 2200M Altitude to look for linear selection after that height threshold.
@@ -56,10 +109,57 @@ gsgb <- gs/1000000000
 alt <- t ( as.matrix (pheno$Altitude, ncol=1))
 alt <- alt - mean(alt) + 0.5
 
+<<<<<<< HEAD
+knob180 <- t ( as.matrix (pheno$X180knobbp, ncol=1))
+knob180gb <- knob180/1000000000
+
+TR1 <- t ( as.matrix (pheno$TR1bp, ncol=1))
+TR1gb <- TR1/1000000000
+
+Te <- t ( as.matrix (pheno$TotalTebp, ncol=1))
+Tegb <- Te/1000000000
+
+
+out.gsgb <- emma.REML.t_beta( gsgb,alt,K=A)
+out.gsgb
+
+out.knob <- emma.REML.t_beta(knob180gb,alt,K=A)
+out.knob
+
+out.tr1 <- emma.REML.t_beta(TR1gb,alt,K=A)
+out.tr1
+
+out.te <- emma.REML.t_beta(Tegb,alt,K=A)
+out.te
+
+fin.gs <- emma.REML.t_beta ( gsgb , alt , X0 =  cbind ( rep ( 1 , 70 ) , c ( TR1gb ) ) , K = A )
+fin.gs
+
+
+fin.knob <- emma.REML.t_beta ( knob180gb , alt , X0 =  cbind ( rep ( 1 , 70 ) , c ( gsgb ) ) , K = A )
+fin.knob
+
+fin.tr1 <- emma.REML.t_beta ( TR1gb , alt , X0 =  cbind ( rep ( 1 , 70 ) , c ( gsgb ) ) , K = A )
+fin.tr1
+
+fin.te <- emma.REML.t_beta ( Tegb , alt , X0 =  cbind ( rep ( 1 , 70 ) , c ( gsgb ) ) , K = A )
+fin.te
+
+
+plot(pheno$Altitude,pheno$X1C_GS,xlab="Altitude (m)",ylab="2C Genome Size (pg)",pch=19, col="black")
+abline(lm(pheno$X1C_GS~pheno$Altitude),lwd=2,lty=2)
+?abline
+plot(pheno$Altitude,pheno$X180knobbp,xlab="Altitude (m)",ylab="Knob abundance",pch=19, col="black")
+plot(pheno$Altitude,pheno$TR1bp,xlab="Altitude (m)",ylab="TR1 abundance",pch=19, col="black")
+plot(pheno$Altitude,pheno$TotalTebp,xlab="Altitude (m)",ylab="TE abundance",pch=19, col="black")
+
+plot(pheno$Altitude,pheno$CentCbp,xlab="Altitude (m)",ylab="Centc abundance",pch=19, col="black")
+=======
 out.gsgb <- emma.REML.t( gsgb,alt,K=A)
 out.gsgb
 plot(pheno$Altitude,pheno$X1C_GS,xlab="Altitude (m)",ylab="2C Genome Size (pg)",pch=19, col="salmon")
 abline(lm(pheno$X1C_GS~pheno$Altitude),lwd=2,lty=2)
 ?abline
+>>>>>>> 9418a0eb3035598edffcb06d5c38aa669b8c3859
 ```
 

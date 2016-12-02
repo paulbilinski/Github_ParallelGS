@@ -87,3 +87,42 @@ out.gsgb
 
 
 ```
+<<<<<<< HEAD
+
+#Set for the maize and teosinte data, for the maize mex admixture or structure data
+
+```{r}
+setwd("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Mexicana_conversion/")
+gbs<-read.table("~/Documents/Projects/Genome_Size_Analysis/Github_ParallelGS/SNP_data/Mexicana_conversion/teomz_tassel.txt", header=TRUE) #column names still not correct
+row.names(gbs)<-gbs$Taxa
+gbs$Taxa<- NULL
+gbs2<- t(gbs)
+gbs2<- gsub("G", "GG", gbs2)
+gbs2<- gsub("A", "AA", gbs2)
+gbs2<- gsub("C", "CC", gbs2)
+gbs2<- gsub("T", "TT", gbs2)
+gbs2<- gsub("Y", "CT", gbs2)
+gbs2<- gsub("R", "AG", gbs2)
+gbs2<- gsub("W", "AT", gbs2)
+gbs2<- gsub("S", "GC", gbs2)
+gbs2<- gsub("K", "TG", gbs2)
+gbs2<- gsub("M", "CA", gbs2)
+gbs2<- gsub("-", "NA", gbs2)
+gbs2<- gsub("N", "NA", gbs2)
+gbs2<- gsub("0", "NA", gbs2)
+gbs2<- gsub("NAA", "NA", gbs2)
+row.names(gbs2)<- NULL
+write.csv(gbs2, "teomz_forSNPconversion.txt")
+```
+
+```{r}
+data <- read.csv("teomz_clean.txt",header=FALSE)
+names<-read.csv("teomz_structheader.txt",header=FALSE)
+data2<-t(data)
+tmp<-cbind(names,data2)
+write.csv(tmp,"teomz_rdyforstructure.csv")
+```
+
+
+=======
+>>>>>>> 9418a0eb3035598edffcb06d5c38aa669b8c3859

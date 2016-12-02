@@ -69,9 +69,12 @@ dheats <-t(heats)
 A.heats <- A.mat(dheats)
 
 image(A.heats,xaxt='n',yaxt='n')
+<<<<<<< HEAD
+=======
 
 
 
+>>>>>>> 9418a0eb3035598edffcb06d5c38aa669b8c3859
 ```
 
 
