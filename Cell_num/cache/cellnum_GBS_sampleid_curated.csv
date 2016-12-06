@@ -1,0 +1,15 @@
+FullName,LibraryPrepID,DNASample,LibraryPlate,Row,Col,Barcode,nLanes,DNA_Plate,SampleDNA_Well,Genus,Species,Project,GermplasmSet,Pedigree,Population,f_.inbreeding.,SeedLot
+PI587138:81N4HABXX:6:250033598,250033598,A554,Ames21,G,4,ATTGGAT,1,Ames21,G04,Zea,mays,2010 Ames Lines,Ames,A554,inbred,0.9,94ncai01 SD
+B57:MRG:2:250040068,250040068,B57,MDP_2,E,9,GGAAC,2,MGP2,E09,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+B73:81FE7ABXX:1:250031005,250031005,B73,Ames1,C,7,ATGAAAC,1,Ames1,C07,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+CML261:MRG:2:250040170,250040170,CML261,MDP_3,D,6,AGTGGA,2,MGP3,D06,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+CML322:MRG:2:250040178,250040178,CML322,MDP_3,D,7,TAGGCCAT,2,MGP3,D07,Zea,mays,Ames282,282 maize diversity panel;NAM parent,,282 maize association mapping panel,0.9,
+CML333:MRG:2:250039813,250039813,CML333,MDP_1,D,9,TGGTACGT,2,MGP1,D09,Zea,mays,Ames282,282 maize diversity panel;NAM parent,,282 maize association mapping panel,0.9,
+CO255:MRG:2:250040207,250040207,CO255,MDP_3,A,11,CTAGC,2,MGP3,A11,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+PI559916:MRG:2:250041603,250041603,CS405,AmesInbreds2,G,8,AAGGTTC,2,AmesInbreds2,G08,Zea,mays,AMES Inbreds,Ames,CS405,,0.9,11698
+DE1:MRG:2:250040061,250040061,DE1,MDP_2,F,8,GCCAGT,2,MGP2,F08,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+PI601026:81FE8ABXX:3:250032197,250032197,F42,Ames11,F,12,TAACGA,1,Ames11,F12,Zea,mays,2010 Ames Lines,Ames,F42,inbred,0.9,08ncai01 SD
+F7:MRG:2:250039830,250039830,F7,MDP_1,E,11,TAATA,2,MGP1,E11,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+Il677a:MRG:2:250040074,250040074,Il677a,MDP_2,C,10,GAACTTC,2,MGP2,C10,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+Ki11:81FE7ABXX:6:250031700,250031700,Ki11,Ames6,G,11,TCGAAGA,1,Ames6,G11,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM parent,Ki11 (check),282 maize association mapping panel,0.9,
+ND246:MRG:2:250040045,250040045,ND246,MDP_2,F,6,CGCGGT,2,MGP2,F06,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,

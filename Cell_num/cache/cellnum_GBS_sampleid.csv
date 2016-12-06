@@ -1,0 +1,57 @@
+FullName,LibraryPrepID,DNASample,LibraryPlate,Row,Col,Barcode,nLanes,DNA_Plate,SampleDNA_Well,Genus,Species,Project,GermplasmSet,Pedigree,Population,f_.inbreeding.,SeedLot
+A554:MRG:2:250039788,250039788,A554,MDP_1,C,6,CTTGCTT,2,MGP1,C06,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+Ames27050:81FENABXX:6:250035187,250035187,Ames27050,Ames29,B,9,TTCAGA,1,Ames29,B09,Zea,mays,2010 Ames Lines,Ames,CO255,inbred,0.9,04ncai01 SD
+Ames27107:81FE8ABXX:4:250032340,250032340,Ames27107,Ames12,H,4,ACGTGGTA,1,Ames12,H04,Zea,mays,2010 Ames Lines,Ames,CO255,inbred,0.9,03ncai01 SD
+B57:MRG:2:250040068,250040068,B57,MDP_2,E,9,GGAAC,2,MGP2,E09,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+B73:81FE7ABXX:1:250031005,250031005,B73,Ames1,C,7,ATGAAAC,1,Ames1,C07,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FE7ABXX:2:250031124,250031124,B73,Ames2,B,10,TAGGAA,1,Ames2,B10,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FE7ABXX:3:250031244,250031244,B73,Ames3,A,12,ACAAA,1,Ames3,A12,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FE7ABXX:4:250031365,250031365,B73,Ames4,A,2,TGCA,1,Ames4,A02,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FE7ABXX:5:250031538,250031538,B73,Ames5,D,6,AGTGGA,1,Ames5,D06,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FE7ABXX:6:250031696,250031696,B73,Ames6,G,7,CGGTAGA,1,Ames6,G07,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FE7ABXX:7:250031751,250031751,B73,Ames7,A,11,CTAGC,1,Ames7,A11,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FE8ABXX:1:250031929,250031929,B73,Ames9,E,10,GTCAA,1,Ames9,E10,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FE8ABXX:2:250032037,250032037,B73,Ames10,A,4,CAGA,1,Ames10,A04,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FE8ABXX:3:250032178,250032178,B73,Ames11,E,5,ATTGA,1,Ames11,E05,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FE8ABXX:4:250032278,250032278,B73,Ames12,C,10,GAACTTC,1,Ames12,C10,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FE8ABXX:5:250032390,250032390,B73,Ames13,B,3,GTATT,1,Ames13,B03,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FE8ABXX:6:250032584,250032584,B73,Ames14,G,6,CGCTGAT,1,Ames14,G06,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FE8ABXX:7:250032824,250032824,B73,Ames15,F,4,ATCGTA,1,Ames15,F04,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FENABXX:1:250033865,250033865,B73,Ames23,H,5,CCATGGGT,1,Ames23,H05,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FENABXX:2:250034752,250034752,B73,Ames24,H,3,ACAGGGAA,1,Ames24,H03,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FENABXX:3:250034841,250034841,B73,Ames26,E,1,AGGC,1,Ames26,E01,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FENABXX:4:250035012,250035012,B73,Ames27,H,9,GGATTGGT,1,Ames27,H09,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FENABXX:5:250035076,250035076,B73,Ames28,D,2,AATATGC,1,Ames28,D02,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FENABXX:6:250035236,250035236,B73,Ames29,F,3,ATATGT,1,Ames29,F03,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81FENABXX:7:250034562,250034562,B73,Ames31,C,8,AAAAGTT,1,Ames31,C08,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81N4HABXX:1:250032949,250032949,B73,Ames16,F,2,ACCTAA,1,Ames16,F02,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81N4HABXX:2:250033087,250033087,B73,Ames17,G,1,TGGCTA,1,Ames17,G01,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81N4HABXX:3:250033217,250033217,B73,Ames18,G,4,ATTGGAT,1,Ames18,G04,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81N4HABXX:4:250033350,250033350,B73,Ames19,G,10,TAGCGGA,1,Ames19,G10,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81N4HABXX:5:250033464,250033464,B73,Ames20,F,9,GGAAGA,1,Ames20,F09,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81N4HABXX:6:250033556,250033556,B73,Ames21,D,8,TGCAAGGA,1,Ames21,D08,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:81N4HABXX:7:250033719,250033719,B73,Ames22,F,10,GTACTT,1,Ames22,F10,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM common parent;IBM parent,B73 (check),282 maize association mapping panel,0.9,
+B73:MRG:2:250040143,250040143,B73,MDP_3,A,3,ACTA,2,MGP3,A03,Zea,mays,Ames282,282 maize diversity panel;NAM common parent;IBM parent,,282 maize association mapping panel,0.9,
+CML261:MRG:2:250040170,250040170,CML261,MDP_3,D,6,AGTGGA,2,MGP3,D06,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+CML322:MRG:2:250040178,250040178,CML322,MDP_3,D,7,TAGGCCAT,2,MGP3,D07,Zea,mays,Ames282,282 maize diversity panel;NAM parent,,282 maize association mapping panel,0.9,
+CML333:MRG:2:250039813,250039813,CML333,MDP_1,D,9,TGGTACGT,2,MGP1,D09,Zea,mays,Ames282,282 maize diversity panel;NAM parent,,282 maize association mapping panel,0.9,
+CO255:MRG:2:250040207,250040207,CO255,MDP_3,A,11,CTAGC,2,MGP3,A11,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+DE1:MRG:2:250040061,250040061,DE1,MDP_2,F,8,GCCAGT,2,MGP2,F08,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+F7:MRG:2:250039830,250039830,F7,MDP_1,E,11,TAATA,2,MGP1,E11,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+Il677a:MRG:2:250040074,250040074,Il677a,MDP_2,C,10,GAACTTC,2,MGP2,C10,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+Ki11:81FE7ABXX:6:250031700,250031700,Ki11,Ames6,G,11,TCGAAGA,1,Ames6,G11,Zea,mays,2010 Ames Lines,282 maize diversity panel;NAM parent,Ki11 (check),282 maize association mapping panel,0.9,
+Ki11:MRG:2:250039815,250039815,Ki11,MDP_1,F,9,GGAAGA,2,MGP1,F09,Zea,mays,Ames282,282 maize diversity panel;NAM parent,,282 maize association mapping panel,0.9,
+ND246:MRG:2:250040045,250040045,ND246,MDP_2,F,6,CGCGGT,2,MGP2,F06,Zea,mays,Ames282,282 maize diversity panel,,282 maize association mapping panel,0.9,
+PI257507:81FE8ABXX:3:250032167,250032167,PI257507,Ames11,A,9,CGCTT,1,Ames11,A09,Zea,mays,2010 Ames Lines,Ames,F7,inbred,0.9,04ncai01 SD
+PI257507:81FENABXX:6:250035228,250035228,PI257507,Ames29,E,7,CCTAC,1,Ames29,E07,Zea,mays,2010 Ames Lines,Ames,F7,inbred,0.9,04ncai02 SD
+PI550472:81FENABXX:4:250034982,250034982,PI550472,Ames27,F,3,ATATGT,1,Ames27,F03,Zea,mays,2010 Ames Lines,Ames,B57,inbred,0.9,04ncai02 SD
+PI550472:81FENABXX:5:250035119,250035119,PI550472,Ames28,G,1,TGGCTA,1,Ames28,G01,Zea,mays,2010 Ames Lines,Ames,B57,inbred,0.9,04ncai01 SD
+PI550473:81FE7ABXX:6:250031665,250031665,PI550473,Ames6,D,6,AGTGGA,1,Ames6,D06,Zea,mays,2010 Ames Lines,Ames,B73,inbred,0.9,08ncai01 SD
+PI550473:81N4HABXX:7:250033656,250033656,PI550473,Ames22,A,11,CTAGC,1,Ames22,A11,Zea,mays,2010 Ames Lines,Ames,B73,inbred,0.9,08ncai02 SD
+PI550473:MRG:2:250041435,250041435,PI550473,AmesInbreds1,D,3,TTGGCA,2,AmesInbreds1,D03,Zea,mays,AMES Inbreds,Ames,B73,,0.9,10099
+PI550490:81FE8ABXX:3:250032160,250032160,PI550490,Ames11,D,9,TGGTACGT,1,Ames11,D09,Zea,mays,2010 Ames Lines,Ames,ND246,inbred,0.9,95ncai01 SD
+PI559916:MRG:2:250041603,250041603,PI559916,AmesInbreds2,G,8,AAGGTTC,2,AmesInbreds2,G08,Zea,mays,AMES Inbreds,Ames,CS405,,0.9,11698
+PI587138:81FENABXX:7:250034627,250034627,PI587138,Ames31,H,5,CCATGGGT,1,Ames31,H05,Zea,mays,2010 Ames Lines,Ames,A554,inbred,0.9,94ncai02 SD
+PI587138:81N4HABXX:6:250033598,250033598,PI587138,Ames21,G,4,ATTGGAT,1,Ames21,G04,Zea,mays,2010 Ames Lines,Ames,A554,inbred,0.9,94ncai01 SD
+PI601026:81FE8ABXX:3:250032197,250032197,PI601026,Ames11,F,12,TAACGA,1,Ames11,F12,Zea,mays,2010 Ames Lines,Ames,F42,inbred,0.9,08ncai01 SD
+PI606329:81FE7ABXX:2:250031148,250031148,PI606329,Ames2,A,4,CAGA,1,Ames2,A04,Zea,mays,2010 Ames Lines,Ames,DE1,inbred,0.9,00ncai01 SD
