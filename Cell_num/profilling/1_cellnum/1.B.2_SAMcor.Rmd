@@ -107,6 +107,7 @@ ggplot(p1, aes(y=DTA, x=cellnum))+
   geom_point(aes(color=genotype))+
   geom_smooth(color="dark grey")+
   facet_wrap(~Growth, scales="free_x")+
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5)) +
   xlab("Cell Number")+
   ylab("Flowering Time")
 
@@ -141,7 +142,7 @@ mx <- as.matrix(mx)
 
 After fitting the related matrix as random, growth period, BAK1 and SDA1 as fixed effects, DTA significantly associated with G1 (effect=-0.11, P value=0.0076) and G3 (effect=-0.08, P value=1.3e-09), but not G2 (effect=-0.08, P value=0.170). 
 
-```{r}
+```{r, eval=FALSE}
 library(bdsmatrix)
 library(coxme)
 row.names(plantcount) <- plantcount$genotype
