@@ -1,0 +1,193 @@
+---
+title: "SAM size"
+date: Sept. 22, 2016
+output:
+  pdf_document: default
+  html_notebook: default
+  html_document: default
+---
+
+
+## Setup
+Normalize path and load libraries etc.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir=normalizePath('../../'))
+```
+
+
+```{r,message=FALSE, warning=FALSE}
+library(gsl)
+library(dplyr)
+library(magrittr)
+library(cowplot)
+library(viridis)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", 
+               "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+cols <- viridis(10)
+
+## more packages
+library(nlme)
+#devtools::install_github("yangjl/quantgen")
+library(quantgen)
+library(tidyr)
+```
+
+## Processing Cell Number Data
+```{r}
+countsize <- read.csv("data/SAM_cellcount.csv", header=T)
+head(countsize)
+```
+
+In the above SAM Cell count table, `r length(unique(countsize$Genotype))` Genotypes were collected for SAM cell counts in `r length(table(countsize$Growth_Period))` growth periods, each period with 3 plants. 
+There are also two factors, BAK1 and SDA1, that associated with some traits. 
+From the data, we learned that `Count_Cells` is significantly correlated with `SAM_V` ($r=0.75, P value < 0.01$). But `Count_Cells` is not correlated with `Mean_Area_percell` ($r=0.03, P value = 0.7$).
+
+We estimated BLUE values separately for each **growth period** by fitting a linear mixed model, where `Genotype` as a fixed effect and `Plant` as a random effect.
+
+
+```{r}
+csg1 <- mixed_model(data = subset(countsize, Growth_Period %in% "G1"),
+                    model = Count_Cells ~ Genotype, random = ~1 | Plant)
+
+csg2 <- mixed_model(data = subset(countsize, Growth_Period %in% "G2"),
+                    model = Count_Cells ~ Genotype, random = ~1 | Plant)
+
+csg3 <- mixed_model(data = subset(countsize, Growth_Period %in% "G3"),
+                    model = Count_Cells ~ Genotype, random = ~1 | Plant)
+
+cs <- merge(csg1, csg2, by="Genotype")
+cs <- merge(cs, csg3, by="Genotype") %>% set_names(c("genotype", "g1", "g2", "g3"))
+lcs <- cs %>% gather(key="Growth", value="cellnum", 2:4)
+
+#theme_set(theme_grey(base_size = 18)) 
+p <- ggplot(lcs, aes(x=toupper(Growth), y=cellnum, fill = Growth)) + 
+    theme_bw(base_size = 18) +
+    geom_boxplot() +
+    ggtitle("BLUEs of three growth periods") + xlab("") + ylab("Cell Number") + 
+    guides(fill=FALSE)
+p
+
+```
+
+
+## Merge with other phenotypes
+```{r, eval=T}
+#samsize<-read.csv("~/Desktop/samsize.csv",header=T)
+#samsize_unsummary<-read.csv("~/Desktop/samsize_unsummarized.csv",header=T)
+plantstuff <- read.csv("data/plantstuff.csv",header=T) %>%
+  select(Genotype,PlantH..cm.,EarH..cm.,mean_nodes,mean_dia_ear..mm.,mean_dia_below..mm.,DTA,SAM_V..um.3.) %>% 
+  set_names(c("genotype","plant_height","ear_height","leaf_nodes","ear_width","stem_width","DTA","SAM_volume")) 
+plantstuff$genotype <- toupper(plantstuff$genotype)
+cs$genotype <- toupper(cs$genotype)
+
+
+tas <- countsize[!duplicated(countsize$Genotype), ] %>%
+  select(Genotype, BAK1, SDA1) %>%
+  set_names(c("genotype", "BAK1", "SDA1"))
+tas$genotype <- toupper(tas$genotype)
+plantcount <- merge(plantstuff, cs, by="genotype") %>%
+  merge(tas, by="genotype")
+
+head(plantcount)
+#plot(plantcount$DTA, plantcount$g1)
+```
+
+## Correlation plot between cell number and flowering time in three growth period
+
+```{r, warning=FALSE}
+lcs <- cs %>% gather(key="Growth", value="cellnum", 2:4)
+
+p1 <- plantcount[, c("genotype", "g1", "g2", "g3")] %>% 
+  gather(key="Growth", value="cellnum", 2:4) %>%
+  merge(plantcount[, 1:8], by="genotype")
+p1$Growth <- toupper(p1$Growth)
+
+ggplot(p1, aes(y=DTA, x=cellnum))+
+  geom_point(aes(color=genotype))+
+  geom_smooth(color="dark grey")+
+  facet_wrap(~Growth, scales="free_x")+
+  theme(axis.text.x=element_text(angle = 90, vjust = 0.5)) +
+  xlab("Cell Number")+
+  ylab("Flowering Time")
+
+#summary(lm(data=p1, DTA ~ cellnum + Growth))
+```
+
+
+### Fit a Linear Mixed Model with relatedness matrix as random
+
+
+The standardized relatedness matrix was estimated with `GEMMA` using GBS data. 
+
+```{r}
+fam0 <- read.table("cache/GBSv2.7_id14_flt.fam", header=F)
+
+idcurated <- read.csv("cache/cellnum_GBS_sampleid_curated.csv")
+fam <- merge(fam0, idcurated[, c("FullName", "DNASample")], by.x="V1", by.y="FullName", sort=FALSE)
+fam$DNASample <- toupper(fam$DNASample)
+
+#### Relatedness estimated from GEMMA
+mx <- read.table("cache/mx.sXX.txt")
+
+row.names(mx) <- fam$DNASample
+names(mx) <- fam$DNASample
+#library(d3heatmap)
+#d3heatmap(mx, scale = "column", dendrogram = "none", color = "Blues")
+mx[mx < 0] <- 0
+mx[mx > 1] <- 1
+mx <- as.matrix(mx)
+```
+
+
+After fitting the related matrix as random, growth period, BAK1 and SDA1 as fixed effects, DTA significantly associated with G1 (effect=-0.11, P value=0.0076) and G3 (effect=-0.08, P value=1.3e-09), but not G2 (effect=-0.08, P value=0.170). 
+
+```{r, eval=FALSE}
+library(bdsmatrix)
+library(coxme)
+row.names(plantcount) <- plantcount$genotype
+
+gfit1 <- lmekin(DTA ~ g1 + BAK1 + SDA1 + (1|genotype), data=plantcount, varlist= mx, method="REML")
+gfit2 <- lmekin(DTA ~ g2 + BAK1 + SDA1 + (1|genotype), data=plantcount, varlist= mx, method="REML")
+gfit3 <- lmekin(DTA ~ g3 + BAK1 + SDA1 + (1|genotype), data=plantcount, varlist= mx, method="REML")
+
+gfit1
+gfit2
+gfit3
+```
+
+I did not test for other traits, but should be straight forward.
+
+```{r, eval=FALSE}
+#cell count, SAM volume
+ggplot(plantcount,aes(y=SAM_volume,x=cell_number))+
+  geom_point(color=cols[1])+
+  geom_smooth(method="loess",color="dark grey")+
+  facet_wrap(~growth_period,scales="free_x")+
+  ylab("SAM volume")+
+  xlab("Cell Number")
+
+#cell size, SAM volume
+ggplot(plantcount,aes(y=SAM_volume,x=cell_size))+
+  geom_point(color=cols[2])+
+  geom_smooth(method="loess",color="dark grey")+
+  facet_wrap(~growth_period,scales="free_x")+
+  ylab("SAM volume")+
+  xlab("Cell Size")
+
+#cell size, cell number
+ggplot(plantcount,aes(x=cell_number,y=cell_size))+
+  geom_point(color=cols[3])+
+  geom_smooth(method="loess",color="dark grey")+
+  facet_wrap(~growth_period,scales="free_x")+
+  xlab("Cell Number")+
+  ylab("Cell Size")
+
+#more cells -> no diff plant height. smaller ear height, weakly smaller ear width & stem_width, shorter DTA
+
+summary(lm(data=plantcount,DTA~cell_number+SDA1+BAK1))
+```
+
+
+
+
